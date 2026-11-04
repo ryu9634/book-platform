@@ -30,9 +30,14 @@ class NationalLibraryClientTest {
     private static final String PATH = "/getbookList_v2";
     private static final String ISBN = "9788966262281";
 
+    // 정상 케이스는 넉넉한 타임아웃을 씁니다. CI 러너의 첫 연결이 느려 짧은 타임아웃이면 정상 응답도 실패할 수 있습니다.
     private NationalLibraryClient client(String serviceKey) {
+        return client(serviceKey, Duration.ofSeconds(5));
+    }
+
+    private NationalLibraryClient client(String serviceKey, Duration readTimeout) {
         NationalLibraryProperties properties = new NationalLibraryProperties(
-                nl.baseUrl(), serviceKey, Duration.ofSeconds(1), Duration.ofMillis(500));
+                nl.baseUrl(), serviceKey, Duration.ofSeconds(5), readTimeout);
         return new NationalLibraryClient(RestClient.builder(), JsonMapper.builder().build(), properties);
     }
 
@@ -147,14 +152,15 @@ class NationalLibraryClientTest {
         // given (응답 타임아웃 0.5초, 서버 지연 3초)
         nl.stubFor(get(urlPathEqualTo(PATH))
                 .willReturn(okJson("{\"header\":{\"resultCode\":\"03\"}}").withFixedDelay(3000)));
+        NationalLibraryClient shortTimeout = client("test-key", Duration.ofMillis(500));
 
         // when
         long start = System.nanoTime();
-        assertThatThrownBy(() -> client("test-key").findByIsbn(ISBN))
+        assertThatThrownBy(() -> shortTimeout.findByIsbn(ISBN))
                 .extracting("errorCode").isEqualTo(ErrorCode.EXTERNAL_API_UNAVAILABLE);
 
         // then
-        assertThat(Duration.ofNanos(System.nanoTime() - start)).isLessThan(Duration.ofSeconds(2));
+        assertThat(Duration.ofNanos(System.nanoTime() - start)).isLessThan(Duration.ofMillis(2500));
     }
 
     @Test

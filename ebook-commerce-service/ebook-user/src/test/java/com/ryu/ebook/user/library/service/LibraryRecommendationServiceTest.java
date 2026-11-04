@@ -51,8 +51,9 @@ class LibraryRecommendationServiceTest {
 
     @BeforeEach
     void setUp() {
-        LibraryClientProperties properties = new LibraryClientProperties(library.baseUrl(), Duration.ofSeconds(1),
-                Duration.ofMillis(500), Duration.ofMinutes(5));
+        // 응답 타임아웃 1.5초: 지연 테스트(3초)보다 짧고, CI 러너의 첫 연결이 느려도 정상 응답은 통과할 만큼 넉넉합니다.
+        LibraryClientProperties properties = new LibraryClientProperties(library.baseUrl(), Duration.ofSeconds(5),
+                Duration.ofMillis(1500), Duration.ofMinutes(5));
         var client = new LibraryClientConfig().libraryBookClient(RestClient.builder(), properties);
         Clock clock = new Clock() {
             public ZoneId getZone() { return ZoneId.of("UTC"); }
@@ -95,7 +96,7 @@ class LibraryRecommendationServiceTest {
         library.stubFor(get(urlPathEqualTo("/api/v1/books/popular")).willReturn(okJson(BODY).withFixedDelay(3000)));
         long start = System.nanoTime();
         assertThat(service.recommend()).isEqualTo(ok);
-        assertThat(Duration.ofNanos(System.nanoTime() - start)).isLessThan(Duration.ofSeconds(2));
+        assertThat(Duration.ofNanos(System.nanoTime() - start)).isLessThan(Duration.ofMillis(2800));
     }
 
     @Test

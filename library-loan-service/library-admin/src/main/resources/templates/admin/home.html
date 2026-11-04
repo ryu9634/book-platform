@@ -13,10 +13,11 @@
         <li><a th:href="@{/admin/loans/overdue}"><strong th:text="${summary.overdueLoans()}">0</strong><span>연체</span></a></li>
         <li><strong th:text="${summary.waitingReservations()}">0</strong><span>예약 대기</span></li>
     </ul>
-    <ul>
-        <li><a th:href="@{/admin/books}">도서 관리</a> · 국립중앙도서관 ISBN으로 도서 등록, 소장 자료 관리</li>
-        <li><a th:href="@{/admin/loans}">대출 현황</a> · 데스크 반납</li>
-        <li><a th:href="@{/admin/members}">회원 관리</a> · 정지와 해제, 권한</li>
+    <h2>바로 가기</h2>
+    <ul class="quick-links">
+        <li><a th:href="@{/admin/books}">도서 관리</a> 국립중앙도서관 ISBN으로 도서 등록, 소장 자료 관리</li>
+        <li><a th:href="@{/admin/loans}">대출 현황</a> 데스크 반납</li>
+        <li><a th:href="@{/admin/members}">회원 관리</a> 정지와 해제, 권한</li>
         <li><a th:href="@{/admin/categories}">분류 관리</a></li>
     </ul>
 </section>

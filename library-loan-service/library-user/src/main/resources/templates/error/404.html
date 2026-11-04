@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/default}">
+<head>
+    <title>페이지를 찾을 수 없습니다</title>
+</head>
+<body>
+<section layout:fragment="content" class="error-page">
+    <p class="error-code" th:text="${status}">404</p>
+    <h1>페이지를 찾을 수 없습니다</h1>
+    <p class="muted">주소가 바뀌었거나 삭제된 페이지입니다.</p>
+    <a class="button" th:href="@{/}">처음 화면으로</a>
+</section>
+</body>
+</html>

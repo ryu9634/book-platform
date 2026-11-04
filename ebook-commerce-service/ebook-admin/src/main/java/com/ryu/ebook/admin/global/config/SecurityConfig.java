@@ -1,6 +1,7 @@
 package com.ryu.ebook.admin.global.config;
 
 import com.ryu.ebook.admin.global.security.LoginAdminDetailsService;
+import com.ryu.ebook.admin.global.security.ViewAccessDeniedHandler;
 import com.ryu.ebook.global.security.ApiSecurityErrorHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -57,6 +58,7 @@ public class SecurityConfig {
                 .logout(logout -> logout
                         .logoutUrl("/admin/logout")
                         .logoutSuccessUrl("/admin/login?logout"))
+                .exceptionHandling(e -> e.accessDeniedHandler(new ViewAccessDeniedHandler("/admin/login")))
                 .build();
     }
 }

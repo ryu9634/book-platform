@@ -2,6 +2,7 @@ package com.ryu.ebook.user.global.config;
 
 import com.ryu.ebook.global.security.ApiSecurityErrorHandler;
 import com.ryu.ebook.user.global.security.LoginMemberDetailsService;
+import com.ryu.ebook.user.global.security.ViewAccessDeniedHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -79,6 +80,7 @@ public class SecurityConfig {
                         .defaultSuccessUrl("/", true)
                         .failureUrl("/login?error"))
                 .logout(logout -> logout.logoutSuccessUrl("/login?logout"))
+                .exceptionHandling(e -> e.accessDeniedHandler(new ViewAccessDeniedHandler("/login")))
                 .build();
     }
 }

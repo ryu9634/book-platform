@@ -15,6 +15,8 @@ public interface LoanRepository extends JpaRepository<Loan, Long> {
 
     long countByMemberIdAndStatusIn(Long memberId, Collection<LoanStatus> statuses);
 
+    List<Loan> findByStatusAndDueDateLessThan(LoanStatus status, LocalDate date);
+
     // 스케줄러가 OVERDUE로 바꾸기 전에도 반납 예정일이 지난 대출은 연체로 봅니다.
     @Query("""
             select count(l) > 0 from Loan l

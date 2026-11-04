@@ -22,6 +22,12 @@ import com.ryu.library.loan.repository.LoanRepository;
 import com.ryu.library.member.MemberFixture;
 import com.ryu.library.member.domain.Member;
 import com.ryu.library.member.repository.MemberRepository;
+import com.ryu.library.member.domain.MemberStatus;
+import com.ryu.library.reservation.domain.Reservation;
+import com.ryu.library.reservation.domain.ReservationStatus;
+import com.ryu.library.reservation.repository.ReservationRepository;
+import com.ryu.library.reservation.service.ReservationHandOver;
+import java.time.LocalDateTime;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -45,6 +51,7 @@ class LoanServiceTest {
     private final BookRepository bookRepository = mock(BookRepository.class);
     private final BookCopyRepository bookCopyRepository = mock(BookCopyRepository.class);
     private final MemberRepository memberRepository = mock(MemberRepository.class);
+    private final ReservationRepository reservationRepository = mock(ReservationRepository.class);
     private final LibraryPolicy policy = new LibraryPolicy(5, 14, 7, 1, 3);
     private LoanService loanService;
     private Member member;
@@ -52,7 +59,8 @@ class LoanServiceTest {
 
     @BeforeEach
     void setUp() {
-        loanService = new LoanService(loanRepository, bookRepository, bookCopyRepository, memberRepository, policy, CLOCK);
+        loanService = new LoanService(loanRepository, bookRepository, bookCopyRepository, memberRepository,
+                reservationRepository, new ReservationHandOver(reservationRepository, policy, CLOCK), policy, CLOCK);
         member = MemberFixture.activeMember();
         copy = BookCopy.create(BookFixture.book("9780000000041", "제목"), "LIB-000007-001");
         ReflectionTestUtils.setField(copy, "id", 70L);
@@ -144,5 +152,109 @@ class LoanServiceTest {
         // when, then
         assertThatThrownBy(() -> loanService.loanBook(MEMBER_ID, 999L))
                 .extracting("errorCode").isEqualTo(ErrorCode.BOOK_NOT_FOUND);
+    }
+
+    private Loan activeLoan(LocalDateTime loanedAt) {
+        Loan loan = Loan.start(MEMBER_ID, 70L, loanedAt, 14);
+        ReflectionTestUtils.setField(loan, "id", 100L);
+        given(loanRepository.findById(100L)).willReturn(Optional.of(loan));
+        given(bookCopyRepository.findById(70L)).willReturn(Optional.of(copy));
+        copy.lend();
+        return loan;
+    }
+
+    @Test
+    @DisplayName("3일 늦게 반납하면 3일 동안 대출이 정지되고, 대기자가 없으면 권은 대출 가능으로 돌아간다")
+    void returnByMember_연체반납_정지() {
+        // given: 반납 예정일이 오늘보다 3일 전
+        Loan loan = activeLoan(LocalDateTime.now(CLOCK).minusDays(17));
+
+        // when
+        loanService.returnByMember(MEMBER_ID, 100L);
+
+        // then
+        assertThat(loan.getStatus()).isEqualTo(com.ryu.library.loan.domain.LoanStatus.RETURNED);
+        assertThat(member.getStatus()).isEqualTo(MemberStatus.SUSPENDED);
+        assertThat(member.getSuspendedUntil()).isEqualTo(TODAY.plusDays(3));
+        assertThat(copy.getStatus()).isEqualTo(BookCopyStatus.AVAILABLE);
+    }
+
+    @Test
+    @DisplayName("반납한 권은 가장 먼저 예약한 대기자 몫으로 보관하고, 대기자는 3일 안에 찾아가야 한다")
+    void returnByMember_대기자있음_예약보관() {
+        // given
+        activeLoan(LocalDateTime.now(CLOCK).minusDays(3));
+        Reservation waiting = Reservation.create(2L, copy.getBook().getId(), LocalDateTime.now(CLOCK).minusDays(1));
+        given(reservationRepository.findFirstByBookIdAndStatusOrderByReservedAtAscIdAsc(any(), any())).willReturn(Optional.of(waiting));
+
+        // when
+        loanService.returnByMember(MEMBER_ID, 100L);
+
+        // then
+        assertThat(copy.getStatus()).isEqualTo(BookCopyStatus.RESERVED);
+        assertThat(waiting.getStatus()).isEqualTo(ReservationStatus.NOTIFIED);
+        assertThat(waiting.getExpiresAt()).isEqualTo(LocalDateTime.now(CLOCK).plusDays(3));
+        assertThat(member.getStatus()).isEqualTo(MemberStatus.ACTIVE);
+    }
+
+    @Test
+    @DisplayName("다른 회원의 대출은 반납할 수 없고 '없음'과 똑같이 처리한다")
+    void returnByMember_남의대출_L004() {
+        // given
+        activeLoan(LocalDateTime.now(CLOCK).minusDays(3));
+
+        // when, then
+        assertThatThrownBy(() -> loanService.returnByMember(999L, 100L))
+                .extracting("errorCode").isEqualTo(ErrorCode.LOAN_NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("연장하면 반납 예정일이 7일 늘고, 두 번째 연장은 거부한다")
+    void extend_1회만() {
+        // given
+        Loan loan = activeLoan(LocalDateTime.now(CLOCK).minusDays(3));
+        LocalDate due = loan.getDueDate();
+
+        // when
+        loanService.extend(MEMBER_ID, 100L);
+
+        // then
+        assertThat(loan.getDueDate()).isEqualTo(due.plusDays(7));
+        assertThatThrownBy(() -> loanService.extend(MEMBER_ID, 100L))
+                .extracting("errorCode").isEqualTo(ErrorCode.EXTEND_LIMIT_EXCEEDED);
+    }
+
+    @Test
+    @DisplayName("이 도서를 기다리는 예약자가 있거나 연체 중이면 연장할 수 없다")
+    void extend_예약대기_연체_거부() {
+        // given
+        activeLoan(LocalDateTime.now(CLOCK).minusDays(20));
+        given(reservationRepository.existsByBookIdAndStatus(any(), any())).willReturn(false);
+
+        // when, then
+        assertThatThrownBy(() -> loanService.extend(MEMBER_ID, 100L))
+                .extracting("errorCode").isEqualTo(ErrorCode.EXTEND_NOT_ALLOWED_OVERDUE);
+        given(reservationRepository.existsByBookIdAndStatus(any(), any())).willReturn(true);
+        assertThatThrownBy(() -> loanService.extend(MEMBER_ID, 100L))
+                .extracting("errorCode").isEqualTo(ErrorCode.EXTEND_NOT_ALLOWED_RESERVED);
+    }
+
+    @Test
+    @DisplayName("수령 가능한 예약이 있으면 나를 위해 보관 중인 권을 대출하고 예약을 완료한다")
+    void loanBook_수령가능예약_보관권대출() {
+        // given
+        Reservation notified = Reservation.create(MEMBER_ID, BOOK_ID, LocalDateTime.now(CLOCK).minusDays(2));
+        notified.notifyAvailable(LocalDateTime.now(CLOCK).minusDays(1), 3);
+        copy.holdForReservation();
+        given(reservationRepository.findFirstByMemberIdAndBookIdAndStatusIn(any(), any(), anyCollection()))
+                .willReturn(Optional.of(notified));
+        given(bookCopyRepository.findByBookIdAndStatusOrderByIdAsc(BOOK_ID, BookCopyStatus.RESERVED)).willReturn(List.of(copy));
+
+        // when
+        loanService.loanBook(MEMBER_ID, BOOK_ID);
+
+        // then
+        assertThat(copy.getStatus()).isEqualTo(BookCopyStatus.ON_LOAN);
+        assertThat(notified.getStatus()).isEqualTo(ReservationStatus.COMPLETED);
     }
 }

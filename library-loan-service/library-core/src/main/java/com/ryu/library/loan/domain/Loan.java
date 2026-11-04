@@ -1,6 +1,8 @@
 package com.ryu.library.loan.domain;
 
 import com.ryu.library.global.common.BaseTimeEntity;
+import com.ryu.library.global.exception.BusinessException;
+import com.ryu.library.global.exception.ErrorCode;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -78,5 +80,35 @@ public class Loan extends BaseTimeEntity {
 
     public boolean isOwnedBy(Long memberId) {
         return this.memberId.equals(memberId);
+    }
+
+    public void returnBook(LocalDateTime now) {
+        if (!isActive()) {
+            throw new BusinessException(ErrorCode.LOAN_ALREADY_RETURNED);
+        }
+        this.status = LoanStatus.RETURNED;
+        this.returnedAt = now;
+    }
+
+    // 연장 조건 중 대출 자신이 아는 것(반납 여부, 연체, 횟수)은 여기서, 예약 대기자 여부는 서비스에서 확인합니다.
+    public void extend(LocalDate today, int extendDays, int maxExtendCount) {
+        if (!isActive()) {
+            throw new BusinessException(ErrorCode.LOAN_ALREADY_RETURNED);
+        }
+        if (isOverdue(today)) {
+            throw new BusinessException(ErrorCode.EXTEND_NOT_ALLOWED_OVERDUE);
+        }
+        if (extendCount >= maxExtendCount) {
+            throw new BusinessException(ErrorCode.EXTEND_LIMIT_EXCEEDED, maxExtendCount);
+        }
+        this.dueDate = dueDate.plusDays(extendDays);
+        this.extendCount++;
+    }
+
+    // 스케줄러가 반납 예정일이 지난 대출을 연체 상태로 바꿉니다.
+    public void markOverdue(LocalDate today) {
+        if (status == LoanStatus.ON_LOAN && today.isAfter(dueDate)) {
+            this.status = LoanStatus.OVERDUE;
+        }
     }
 }

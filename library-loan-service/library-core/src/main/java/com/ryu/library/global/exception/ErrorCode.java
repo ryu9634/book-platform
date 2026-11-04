@@ -46,7 +46,19 @@ public enum ErrorCode {
     HAS_OVERDUE_LOAN(HttpStatus.BAD_REQUEST, "L002", "연체 중인 도서가 있어 대출할 수 없습니다. 먼저 반납해 주세요."),
     ALREADY_LOANED_BOOK(HttpStatus.CONFLICT, "L003", "이미 대출 중인 도서입니다."),
     LOAN_NOT_FOUND(HttpStatus.NOT_FOUND, "L004", "대출 기록을 찾을 수 없습니다."),
-    NO_AVAILABLE_COPY(HttpStatus.CONFLICT, "L005", "지금 대출할 수 있는 권이 없습니다. 예약해 주세요.");
+    NO_AVAILABLE_COPY(HttpStatus.CONFLICT, "L005", "지금 대출할 수 있는 권이 없습니다. 예약해 주세요."),
+    LOAN_ALREADY_RETURNED(HttpStatus.CONFLICT, "L006", "이미 반납한 도서입니다."),
+    EXTEND_LIMIT_EXCEEDED(HttpStatus.BAD_REQUEST, "L007", "연장은 %s회까지 할 수 있습니다."),
+    EXTEND_NOT_ALLOWED_OVERDUE(HttpStatus.BAD_REQUEST, "L008", "연체 중인 도서는 연장할 수 없습니다. 반납해 주세요."),
+    EXTEND_NOT_ALLOWED_RESERVED(HttpStatus.BAD_REQUEST, "L009", "예약한 회원이 있어 연장할 수 없습니다."),
+
+    // 예약 (R)
+    RESERVATION_NOT_ALLOWED_AVAILABLE(HttpStatus.BAD_REQUEST, "R001", "대출 가능한 권이 있어 예약할 수 없습니다. 바로 대출해 주세요."),
+    RESERVATION_NOT_ALLOWED_LOANED(HttpStatus.BAD_REQUEST, "R002", "이미 대출 중인 도서는 예약할 수 없습니다."),
+    DUPLICATE_RESERVATION(HttpStatus.CONFLICT, "R003", "이미 예약한 도서입니다."),
+    RESERVATION_NOT_FOUND(HttpStatus.NOT_FOUND, "R004", "예약을 찾을 수 없습니다."),
+    RESERVATION_NOT_CANCELABLE(HttpStatus.CONFLICT, "R005", "이미 끝난 예약입니다."),
+    NO_COPY_TO_RESERVE(HttpStatus.BAD_REQUEST, "R006", "소장 자료가 없어 예약할 수 없습니다.");
 
     // 도메인 에러 코드는 기능을 만들 때 도메인별 접두사로 추가합니다. (A 인증, M 회원, B 도서, L 대출, R 예약)
 

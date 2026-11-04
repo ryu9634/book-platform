@@ -76,4 +76,25 @@ class MemberApiControllerTest {
                 .andExpect(jsonPath("$.error.code").value("M001"))
                 .andExpect(jsonPath("$.error.message").value("이미 사용 중인 아이디입니다."));
     }
+
+    @Test
+    @DisplayName("JSON이 깨져 있으면 500이 아니라 400을 돌려준다")
+    void signup_깨진JSON_400() throws Exception {
+        // given
+        String body = "{\"loginId\":";
+
+        // when, then
+        mockMvc.perform(post("/api/v1/members").contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error.code").value("C001"));
+    }
+
+    @Test
+    @DisplayName("JSON이 아닌 형식으로 보내면 415를 돌려준다")
+    void signup_지원하지않는형식_415() throws Exception {
+        // when, then
+        mockMvc.perform(post("/api/v1/members").contentType(MediaType.TEXT_PLAIN).content("hello"))
+                .andExpect(status().isUnsupportedMediaType())
+                .andExpect(jsonPath("$.error.code").value("C005"));
+    }
 }

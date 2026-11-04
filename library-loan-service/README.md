@@ -35,3 +35,17 @@ cp library-admin/src/main/resources/application-local.yml.example library-admin/
 로컬 Oracle 없이 띄워 보려면 `./gradlew :library-user:bootTestRun`을 씁니다. Testcontainers가 Oracle 컨테이너를 따로 띄웁니다.
 
 테스트도 Testcontainers를 쓰므로 Docker만 켜져 있으면 됩니다: `./gradlew test`
+
+## Docker로 실행
+
+이 서비스의 user, admin 앱을 컨테이너로 띄우려면 루트에서 실행합니다.
+
+```bash
+docker compose --profile app up -d --build library-user library-admin
+```
+
+이미지는 `Dockerfile` 하나로 만들고 `MODULE` 빌드 인자로 앱을 고릅니다. 직접 빌드할 때는 이 폴더에서 다음 명령을 씁니다.
+
+```bash
+docker build --build-arg MODULE=library-user -t book-platform/library-user .
+```

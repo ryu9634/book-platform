@@ -38,4 +38,10 @@ subprojects {
 	tasks.named('test') {
 		useJUnitPlatform()
 	}
+
+	// 로컬 비밀번호가 든 application-local.yml과 예시 파일은 jar(와 Docker 이미지)에 넣지 않습니다.
+	// bootRun은 jar가 아니라 build/resources를 쓰므로 로컬 실행에는 영향이 없습니다.
+	tasks.withType(Jar).configureEach {
+		exclude '**/application-local.yml', '**/*.example'
+	}
 }

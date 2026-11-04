@@ -1,6 +1,21 @@
-# 로컬 개발용: Oracle만 띄우고 애플리케이션은 IDE에서 실행
-# 애플리케이션 컨테이너(library-user, library-admin, ebook-user, ebook-admin)는 구현 완료 후 추가
-# 비밀번호는 같은 폴더의 .env 파일에서 읽습니다. (.env.example 참고, .env는 git에 올리지 않음)
+# 로컬 개발용 compose. 비밀번호는 같은 폴더의 .env 파일에서 읽습니다. (.env.example 참고, .env는 git에 올리지 않음)
+#   docker compose up -d                    Oracle만 실행 (앱은 IDE에서 실행할 때)
+#   docker compose --profile app up -d      Oracle + 앱 4개 실행 (처음이거나 코드가 바뀌었으면 --build 추가)
+
+x-app-common: &app-common
+  profiles: ["app"]
+  depends_on:
+    oracle-db:
+      condition: service_healthy
+  restart: unless-stopped
+  mem_limit: 768m
+
+x-app-env: &app-env
+  SPRING_PROFILES_ACTIVE: docker
+  DB_URL: jdbc:oracle:thin:@//oracle-db:1521/FREEPDB1
+  # 컨테이너 메모리 제한 안에서 힙 크기를 정합니다.
+  JAVA_TOOL_OPTIONS: -XX:MaxRAMPercentage=75 -Duser.timezone=Asia/Seoul
+
 services:
   oracle-db:
     image: gvenzl/oracle-free:23-slim
@@ -20,6 +35,66 @@ services:
       interval: 10s
       timeout: 5s
       retries: 20
+
+  library-user:
+    <<: *app-common
+    build:
+      context: ./library-loan-service
+      args:
+        MODULE: library-user
+    image: book-platform/library-user
+    container_name: book-platform-library-user
+    ports:
+      - "8081:8081"
+    environment:
+      <<: *app-env
+      DB_USERNAME: library
+      DB_PASSWORD: ${LIBRARY_DB_PASSWORD}
+
+  library-admin:
+    <<: *app-common
+    build:
+      context: ./library-loan-service
+      args:
+        MODULE: library-admin
+    image: book-platform/library-admin
+    container_name: book-platform-library-admin
+    ports:
+      - "9081:9081"
+    environment:
+      <<: *app-env
+      DB_USERNAME: library
+      DB_PASSWORD: ${LIBRARY_DB_PASSWORD}
+
+  ebook-user:
+    <<: *app-common
+    build:
+      context: ./ebook-commerce-service
+      args:
+        MODULE: ebook-user
+    image: book-platform/ebook-user
+    container_name: book-platform-ebook-user
+    ports:
+      - "8082:8082"
+    environment:
+      <<: *app-env
+      DB_USERNAME: ebook
+      DB_PASSWORD: ${EBOOK_DB_PASSWORD}
+
+  ebook-admin:
+    <<: *app-common
+    build:
+      context: ./ebook-commerce-service
+      args:
+        MODULE: ebook-admin
+    image: book-platform/ebook-admin
+    container_name: book-platform-ebook-admin
+    ports:
+      - "9082:9082"
+    environment:
+      <<: *app-env
+      DB_USERNAME: ebook
+      DB_PASSWORD: ${EBOOK_DB_PASSWORD}
 
 volumes:
   oracle-data:

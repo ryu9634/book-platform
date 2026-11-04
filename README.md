@@ -14,6 +14,23 @@ Spring 기본기(계층 구조, JPA 연관관계, 트랜잭션, 예외 처리, S
 두 서비스는 서로 호출하지 않는 독립 애플리케이션이며, 공통 문서와 인프라와 함께 저장소 하나(모노레포)에서 관리합니다.
 공통 인프라(Oracle)는 루트의 `docker-compose.yml` 하나로 띄우고, 서비스마다 별도 스키마(사용자)를 씁니다.
 
+## 실행
+
+처음 한 번은 루트에서 `.env`를 만들고 비밀번호를 직접 정해서 넣습니다. (`cp .env.example .env`)
+
+```bash
+docker compose up -d                          # Oracle만 실행 (앱은 IDE에서 개발할 때)
+docker compose --profile app up -d --build    # Oracle + 앱 4개 실행
+docker compose --profile app down             # 전체 종료 (데이터 유지, 삭제하려면 -v)
+```
+
+| 앱 | 주소 |
+|---|---|
+| 도서 대출 회원 / 관리자 | http://localhost:8081 / http://localhost:9081 |
+| ebook 회원 / 관리자 | http://localhost:8082 / http://localhost:9082 |
+
+IDE에서 앱을 실행하는 방법은 각 서비스 README를 봅니다.
+
 ## 문서
 
 - `docs/00-architecture.md` : 컨테이너 구성, 기술 스택, 패키지 구조, 인증 흐름
@@ -39,5 +56,5 @@ Spring 기본기(계층 구조, JPA 연관관계, 트랜잭션, 예외 처리, S
 2. 프로젝트 뼈대 생성 (Gradle 멀티모듈 core/user/admin, 공통 설정, 예외 처리, Testcontainers)
 3. (다음) 도서 대출 서비스 구현 (도메인별로 엔티티 → 서비스 → API → 화면)
 4. ebook 커머스 서비스 구현
-5. Docker, GitHub Actions 연결
+5. Docker (앱 4개 compose 실행 완료), GitHub Actions 연결
 6. 확장: 서비스 간 통신 (대출 이력 기반 ebook 추천). library와 ebook이 API 또는 메시지로 통신하는 MSA 요소를 하나 추가

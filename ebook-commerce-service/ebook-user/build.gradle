@@ -6,8 +6,13 @@ dependencies {
 	implementation project(':ebook-core')
 	implementation 'org.springframework.boot:spring-boot-starter-webmvc'
 	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+	// API의 JWT 서명과 검증은 리소스 서버 기능(Nimbus)을 HS256 대칭 키로 씁니다.
+	implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
+	implementation 'nz.net.ultraq.thymeleaf:thymeleaf-layout-dialect'
 
 	testImplementation testFixtures(project(':ebook-core'))
 	testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
 	testImplementation 'org.springframework.boot:spring-boot-starter-thymeleaf-test'
+	testImplementation 'org.springframework.boot:spring-boot-starter-security-test'
 }

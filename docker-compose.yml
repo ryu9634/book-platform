@@ -84,6 +84,7 @@ services:
       <<: *app-env
       DB_USERNAME: ebook
       DB_PASSWORD: ${EBOOK_DB_PASSWORD}
+      EBOOK_JWT_SECRET: ${EBOOK_JWT_SECRET:?.env에 EBOOK_JWT_SECRET을 설정하세요}
 
   ebook-admin:
     <<: *app-common
@@ -99,6 +100,8 @@ services:
       <<: *app-env
       DB_USERNAME: ebook
       DB_PASSWORD: ${EBOOK_DB_PASSWORD}
+      EBOOK_ADMIN_LOGIN_ID: ${EBOOK_ADMIN_LOGIN_ID:-}
+      EBOOK_ADMIN_PASSWORD: ${EBOOK_ADMIN_PASSWORD:-}
 
 volumes:
   oracle-data:

@@ -8,3 +8,9 @@ spring:
 
 server:
   port: 9082
+
+# 첫 관리자 계정. 값은 환경 변수로만 넣습니다. 비어 있으면 계정을 만들지 않습니다.
+ebook:
+  admin:
+    initial-login-id: ${EBOOK_ADMIN_LOGIN_ID:}
+    initial-password: ${EBOOK_ADMIN_PASSWORD:}

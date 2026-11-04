@@ -12,6 +12,11 @@ import com.ryu.library.loan.repository.LoanRepository;
 import com.ryu.library.member.MemberFixture;
 import com.ryu.library.member.domain.Member;
 import com.ryu.library.member.repository.MemberRepository;
+import com.ryu.library.reservation.domain.Reservation;
+import com.ryu.library.reservation.repository.ReservationRepository;
+import java.time.LocalDateTime;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyCollection;
 import com.ryu.library.user.loan.dto.BookActionState;
 import java.time.Clock;
 import java.time.Instant;
@@ -30,7 +35,9 @@ class LoanQueryServiceTest {
     private final LoanRepository loanRepository = mock(LoanRepository.class);
     private final BookCopyRepository bookCopyRepository = mock(BookCopyRepository.class);
     private final MemberRepository memberRepository = mock(MemberRepository.class);
-    private final LoanQueryService service = new LoanQueryService(loanRepository, bookCopyRepository, memberRepository, CLOCK);
+    private final ReservationRepository reservationRepository = mock(ReservationRepository.class);
+    private final LoanQueryService service =
+            new LoanQueryService(loanRepository, bookCopyRepository, memberRepository, reservationRepository, CLOCK);
     private Member member;
 
     @BeforeEach
@@ -61,5 +68,25 @@ class LoanQueryServiceTest {
 
         given(bookCopyRepository.findByBookIdAndStatusOrderByIdAsc(3L, BookCopyStatus.AVAILABLE)).willReturn(List.of());
         assertThat(service.actionState(5L, 3L).type()).isEqualTo(BookActionState.Type.NO_AVAILABLE_COPY);
+    }
+
+    @Test
+    @DisplayName("수령 가능한 예약이 있으면 예약 도서 대출, 대기 중이고 가용 권이 없으면 대기 순번을 보여 준다")
+    void actionState_예약분기() {
+        // given
+        Reservation notified = Reservation.create(5L, 4L, LocalDateTime.now(CLOCK));
+        notified.notifyAvailable(LocalDateTime.now(CLOCK), 3);
+        given(reservationRepository.findFirstByMemberIdAndBookIdAndStatusIn(org.mockito.ArgumentMatchers.eq(5L),
+                org.mockito.ArgumentMatchers.eq(4L), anyCollection())).willReturn(Optional.of(notified));
+        assertThat(service.actionState(5L, 4L).type()).isEqualTo(BookActionState.Type.RESERVED_READY);
+
+        Reservation waiting = Reservation.create(5L, 6L, LocalDateTime.now(CLOCK));
+        given(reservationRepository.findFirstByMemberIdAndBookIdAndStatusIn(org.mockito.ArgumentMatchers.eq(5L),
+                org.mockito.ArgumentMatchers.eq(6L), anyCollection())).willReturn(Optional.of(waiting));
+        given(bookCopyRepository.findByBookIdAndStatusOrderByIdAsc(6L, BookCopyStatus.AVAILABLE)).willReturn(List.of());
+        given(reservationRepository.waitingPosition(any(), any(), any())).willReturn(2L);
+        BookActionState state = service.actionState(5L, 6L);
+        assertThat(state.type()).isEqualTo(BookActionState.Type.RESERVED_WAITING);
+        assertThat(state.waitingPosition()).isEqualTo(2L);
     }
 }

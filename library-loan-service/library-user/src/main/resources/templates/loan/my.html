@@ -22,7 +22,15 @@
             <td th:text="${#temporals.format(loan.loanedAt(), 'yyyy-MM-dd')}">2026-11-04</td>
             <td th:text="${loan.dueDate()}">2026-11-18</td>
             <td th:text="${loan.statusLabel()}">대출 중</td>
-            <td class="row-actions" th:attr="data-loan-id=${loan.loanId()}"></td>
+            <td class="row-actions">
+                <form th:action="@{/loans/{id}/extend(id=${loan.loanId()})}" method="post" class="inline"
+                      th:if="${!loan.overdue() and loan.extendCount() == 0}">
+                    <button type="submit" class="link">연장</button>
+                </form>
+                <form th:action="@{/loans/{id}/return(id=${loan.loanId()})}" method="post" class="inline">
+                    <button type="submit" class="link">반납</button>
+                </form>
+            </td>
         </tr>
         </tbody>
     </table>

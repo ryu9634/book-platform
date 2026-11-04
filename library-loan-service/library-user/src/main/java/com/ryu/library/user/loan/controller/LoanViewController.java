@@ -14,6 +14,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -39,6 +40,30 @@ public class LoanViewController {
             return "redirect:/books/" + bookId;
         }
         redirectAttributes.addFlashAttribute("message", "대출했습니다. 반납 예정일을 확인해 주세요.");
+        return "redirect:/loans/my";
+    }
+
+    @PostMapping("/loans/{loanId}/return")
+    public String returnLoan(@AuthenticationPrincipal LoginMember loginMember, @PathVariable Long loanId,
+            RedirectAttributes redirectAttributes) {
+        try {
+            loanService.returnByMember(loginMember.getMemberId(), loanId);
+            redirectAttributes.addFlashAttribute("message", "반납했습니다.");
+        } catch (BusinessException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        }
+        return "redirect:/loans/my";
+    }
+
+    @PostMapping("/loans/{loanId}/extend")
+    public String extend(@AuthenticationPrincipal LoginMember loginMember, @PathVariable Long loanId,
+            RedirectAttributes redirectAttributes) {
+        try {
+            loanService.extend(loginMember.getMemberId(), loanId);
+            redirectAttributes.addFlashAttribute("message", "반납 예정일을 연장했습니다.");
+        } catch (BusinessException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        }
         return "redirect:/loans/my";
     }
 

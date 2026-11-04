@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -39,6 +40,18 @@ public class LoanApiController {
                 ? loanService.loanBook(memberId, request.bookId())
                 : loanService.loanCopy(memberId, request.bookCopyId());
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(Map.of("loanId", loanId)));
+    }
+
+    @PostMapping("/{loanId}/return")
+    public ApiResponse<Void> returnLoan(@AuthenticationPrincipal Jwt jwt, @PathVariable Long loanId) {
+        loanService.returnByMember(Long.valueOf(jwt.getSubject()), loanId);
+        return ApiResponse.ok();
+    }
+
+    @PostMapping("/{loanId}/extend")
+    public ApiResponse<Void> extend(@AuthenticationPrincipal Jwt jwt, @PathVariable Long loanId) {
+        loanService.extend(Long.valueOf(jwt.getSubject()), loanId);
+        return ApiResponse.ok();
     }
 
     @GetMapping("/my")

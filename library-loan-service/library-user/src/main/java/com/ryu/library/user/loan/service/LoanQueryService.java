@@ -8,6 +8,11 @@ import com.ryu.library.loan.domain.LoanStatus;
 import com.ryu.library.loan.repository.LoanRepository;
 import com.ryu.library.member.domain.Member;
 import com.ryu.library.member.repository.MemberRepository;
+import com.ryu.library.reservation.domain.Reservation;
+import com.ryu.library.reservation.domain.ReservationStatus;
+import com.ryu.library.reservation.repository.ReservationRepository;
+import com.ryu.library.reservation.service.ReservationService;
+import java.util.Optional;
 import com.ryu.library.user.loan.dto.BookActionState;
 import com.ryu.library.user.loan.dto.LoanResponse;
 import java.time.Clock;
@@ -28,6 +33,7 @@ public class LoanQueryService {
     private final LoanRepository loanRepository;
     private final BookCopyRepository bookCopyRepository;
     private final MemberRepository memberRepository;
+    private final ReservationRepository reservationRepository;
     private final Clock clock;
 
     public List<LoanResponse> myActiveLoans(Long memberId) {
@@ -42,7 +48,7 @@ public class LoanQueryService {
         return loanRepository.findHistoryByMember(memberId, pageable).map(view -> LoanResponse.of(view, today));
     }
 
-    // 도서 상세 버튼: 정지 → 이미 대출 중 → 대출 가능 권 유무 순서로 판단합니다.
+    // 도서 상세 버튼: 정지 → 이미 대출 중 → 수령 가능한 예약 → 대출 가능 권 → 대기 중인 예약 → 예약 가능 순서로 판단합니다.
     public BookActionState actionState(Long memberId, Long bookId) {
         LocalDate today = LocalDate.now(clock);
         Member member = memberRepository.findById(memberId)
@@ -53,7 +59,17 @@ public class LoanQueryService {
         if (loanRepository.existsActiveLoanOfBook(memberId, bookId)) {
             return BookActionState.of(BookActionState.Type.ALREADY_LOANED);
         }
+        Optional<Reservation> reservation = reservationRepository
+                .findFirstByMemberIdAndBookIdAndStatusIn(memberId, bookId, ReservationService.ACTIVE);
+        if (reservation.filter(r -> r.getStatus() == ReservationStatus.NOTIFIED).isPresent()) {
+            return BookActionState.of(BookActionState.Type.RESERVED_READY);
+        }
         boolean available = !bookCopyRepository.findByBookIdAndStatusOrderByIdAsc(bookId, BookCopyStatus.AVAILABLE).isEmpty();
-        return BookActionState.of(available ? BookActionState.Type.CAN_LOAN : BookActionState.Type.NO_AVAILABLE_COPY);
+        if (available) {
+            return BookActionState.of(BookActionState.Type.CAN_LOAN);
+        }
+        return reservation
+                .map(r -> BookActionState.waiting(reservationRepository.waitingPosition(bookId, r.getReservedAt(), r.getId())))
+                .orElse(BookActionState.of(BookActionState.Type.NO_AVAILABLE_COPY));
     }
 }

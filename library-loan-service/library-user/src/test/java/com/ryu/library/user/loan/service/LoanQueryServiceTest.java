@@ -1,0 +1,65 @@
+package com.ryu.library.user.loan.service;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
+
+import com.ryu.library.book.BookFixture;
+import com.ryu.library.book.domain.BookCopy;
+import com.ryu.library.book.domain.BookCopyStatus;
+import com.ryu.library.book.repository.BookCopyRepository;
+import com.ryu.library.loan.repository.LoanRepository;
+import com.ryu.library.member.MemberFixture;
+import com.ryu.library.member.domain.Member;
+import com.ryu.library.member.repository.MemberRepository;
+import com.ryu.library.user.loan.dto.BookActionState;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.List;
+import java.util.Optional;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
+class LoanQueryServiceTest {
+
+    private static final Clock CLOCK = Clock.fixed(Instant.parse("2026-11-04T01:00:00Z"), ZoneId.of("Asia/Seoul"));
+
+    private final LoanRepository loanRepository = mock(LoanRepository.class);
+    private final BookCopyRepository bookCopyRepository = mock(BookCopyRepository.class);
+    private final MemberRepository memberRepository = mock(MemberRepository.class);
+    private final LoanQueryService service = new LoanQueryService(loanRepository, bookCopyRepository, memberRepository, CLOCK);
+    private Member member;
+
+    @BeforeEach
+    void setUp() {
+        member = MemberFixture.activeMember();
+        given(memberRepository.findById(5L)).willReturn(Optional.of(member));
+    }
+
+    @Test
+    @DisplayName("정지 중이면 다른 조건보다 먼저 정지 상태를 보여 준다")
+    void actionState_정지우선() {
+        member.suspendUntil(LocalDate.of(2026, 11, 20));
+        given(loanRepository.existsActiveLoanOfBook(5L, 1L)).willReturn(true);
+
+        assertThat(service.actionState(5L, 1L).type()).isEqualTo(BookActionState.Type.SUSPENDED);
+    }
+
+    @Test
+    @DisplayName("이미 빌린 도서면 대출 중, 대출 가능한 권이 있으면 대출 가능, 없으면 모두 대출 중")
+    void actionState_분기() {
+        given(loanRepository.existsActiveLoanOfBook(5L, 1L)).willReturn(true);
+        assertThat(service.actionState(5L, 1L).type()).isEqualTo(BookActionState.Type.ALREADY_LOANED);
+
+        given(loanRepository.existsActiveLoanOfBook(5L, 2L)).willReturn(false);
+        given(bookCopyRepository.findByBookIdAndStatusOrderByIdAsc(2L, BookCopyStatus.AVAILABLE))
+                .willReturn(List.of(BookCopy.create(BookFixture.book("9780000000071", "제목"), "LIB-1")));
+        assertThat(service.actionState(5L, 2L).type()).isEqualTo(BookActionState.Type.CAN_LOAN);
+
+        given(bookCopyRepository.findByBookIdAndStatusOrderByIdAsc(3L, BookCopyStatus.AVAILABLE)).willReturn(List.of());
+        assertThat(service.actionState(5L, 3L).type()).isEqualTo(BookActionState.Type.NO_AVAILABLE_COPY);
+    }
+}

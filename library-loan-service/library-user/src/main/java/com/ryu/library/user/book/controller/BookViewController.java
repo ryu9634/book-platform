@@ -1,6 +1,9 @@
 package com.ryu.library.user.book.controller;
 
 import com.ryu.library.user.book.service.BookQueryService;
+import com.ryu.library.user.global.security.LoginMember;
+import com.ryu.library.user.loan.service.LoanQueryService;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -16,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 public class BookViewController {
 
     private final BookQueryService bookQueryService;
+    private final LoanQueryService loanQueryService;
 
     @GetMapping("/books")
     public String list(@RequestParam(required = false) String keyword, @RequestParam(required = false) Long categoryId,
@@ -28,8 +32,11 @@ public class BookViewController {
     }
 
     @GetMapping("/books/{bookId}")
-    public String detail(@PathVariable Long bookId, Model model) {
+    public String detail(@PathVariable Long bookId, @AuthenticationPrincipal LoginMember loginMember, Model model) {
         model.addAttribute("book", bookQueryService.getBook(bookId));
+        if (loginMember != null) {
+            model.addAttribute("action", loanQueryService.actionState(loginMember.getMemberId(), bookId));
+        }
         return "book/detail";
     }
 }

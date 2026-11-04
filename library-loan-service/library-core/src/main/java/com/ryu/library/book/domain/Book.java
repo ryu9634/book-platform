@@ -69,6 +69,18 @@ public class Book extends BaseTimeEntity {
         this.coverImageUrl = coverImageUrl;
     }
 
+    // ISBN은 도서를 구분하는 값이라 바꾸지 않습니다. 나머지 서지 정보만 고칩니다.
+    public void update(Long categoryId, String title, String author, String publisher, LocalDate publishedDate,
+            String description, String coverImageUrl) {
+        this.categoryId = categoryId;
+        this.title = cut(title, TITLE_MAX);
+        this.author = cut(author, AUTHOR_MAX);
+        this.publisher = cut(publisher, PUBLISHER_MAX);
+        this.publishedDate = publishedDate;
+        this.description = cut(description, DESCRIPTION_MAX);
+        this.coverImageUrl = coverImageUrl;
+    }
+
     private static String cut(String value, int max) {
         if (value == null || value.length() <= max) {
             return value;

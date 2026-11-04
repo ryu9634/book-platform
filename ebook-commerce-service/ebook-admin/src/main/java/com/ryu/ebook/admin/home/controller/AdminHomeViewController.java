@@ -1,10 +1,16 @@
 package com.ryu.ebook.admin.home.controller;
 
+import com.ryu.ebook.admin.home.service.DashboardService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
 @Controller
+@RequiredArgsConstructor
 public class AdminHomeViewController {
+
+    private final DashboardService dashboardService;
 
     @GetMapping("/")
     public String root() {
@@ -12,7 +18,8 @@ public class AdminHomeViewController {
     }
 
     @GetMapping("/admin")
-    public String home() {
+    public String home(Model model) {
+        model.addAttribute("summary", dashboardService.summary());
         return "admin/home";
     }
 

@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/default}">
+<head>
+    <title>주문 상세</title>
+</head>
+<body>
+<section layout:fragment="content" class="medium">
+    <p th:if="${message}" class="alert" th:text="${message}">처리 결과</p>
+    <p th:if="${errorMessage}" class="alert error" th:text="${errorMessage}">오류</p>
+    <h1 th:text="|주문 ${detail.orderNo()}|">주문</h1>
+    <dl class="detail">
+        <dt>회원</dt><dd th:text="${detail.memberLabel()}">회원</dd>
+        <dt>상태</dt><dd th:text="${detail.status()}">PAID</dd>
+        <dt>금액</dt><dd th:text="|${#numbers.formatInteger(detail.paidAmount(), 1, 'COMMA')}원|">0원</dd>
+        <dt>결제</dt><dd th:text="${detail.paymentLabel()}">결제</dd>
+    </dl>
+    <table class="table">
+        <thead><tr><th>전자책</th><th>금액</th><th>상태</th></tr></thead>
+        <tbody>
+        <tr th:each="item : ${detail.items()}">
+            <td th:text="${item.title()}">제목</td>
+            <td th:text="|${#numbers.formatInteger(item.price(), 1, 'COMMA')}원|">0원</td>
+            <td th:text="${item.status()}">ORDERED</td>
+        </tr>
+        </tbody>
+    </table>
+    <form th:if="${detail.refundable()}" th:action="@{/admin/orders/{no}/refund(no=${detail.orderNo()})}" method="post">
+        <button type="submit" class="button">남은 항목 모두 환불 (강제 환불)</button>
+    </form>
+    <a th:href="@{/admin/orders}">주문 목록</a>
+</section>
+</body>
+</html>

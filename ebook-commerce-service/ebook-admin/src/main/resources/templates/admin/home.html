@@ -7,8 +7,16 @@
 <body>
 <section layout:fragment="content">
     <h1>ebook 관리자 대시보드</h1>
+    <ul class="stats">
+        <li><strong th:text="${summary.todayOrders()}">0</strong><span>오늘 주문</span></li>
+        <li><strong th:text="|${#numbers.formatInteger(summary.todaySales(), 1, 'COMMA')}원|">0원</strong><span>오늘 매출</span></li>
+        <li><a th:href="@{/admin/orders(status='PENDING')}"><strong th:text="${summary.pendingOrders()}">0</strong><span>결제 대기</span></a></li>
+    </ul>
     <ul>
         <li><a th:href="@{/admin/ebooks}">전자책 관리</a> · 등록, 판매 상태, 본문 파일</li>
+        <li><a th:href="@{/admin/orders}">주문 관리</a> · 조회, 강제 환불</li>
+        <li><a th:href="@{/admin/members}">회원 관리</a> · 조회, 탈퇴 처리</li>
+        <li><a th:href="@{/admin/sales}">매출 요약</a> · 월별, 분류별, 상위 전자책</li>
     </ul>
 </section>
 </body>

@@ -29,4 +29,27 @@ public interface OrdersRepository extends JpaRepository<Orders, Long> {
     Page<Orders> findByMemberId(Long memberId, Pageable pageable);
 
     List<Orders> findByStatusAndOrderedAtBefore(OrderStatus status, LocalDateTime cutoff);
+
+    long countByOrderedAtGreaterThanEqual(LocalDateTime from);
+
+    long countByStatus(OrderStatus status);
+
+    // 관리자 주문 조회: 상태 목록, 주문 기간, 검색어(주문번호·회원 아이디·이름)
+    @Query(value = """
+            select new com.ryu.ebook.order.repository.AdminOrderView(o.orderNo, m.id, m.loginId, m.name, o.status,
+                   o.paidAmount, o.orderedAt, o.paidAt)
+            from Orders o join Member m on m.id = o.memberId
+            where o.status in :statuses and o.orderedAt >= :from and o.orderedAt < :to
+              and (:keyword is null or o.orderNo = :keyword or m.loginId like concat('%', :keyword, '%')
+                   or m.name like concat('%', :keyword, '%'))
+            """,
+            countQuery = """
+            select count(o) from Orders o join Member m on m.id = o.memberId
+            where o.status in :statuses and o.orderedAt >= :from and o.orderedAt < :to
+              and (:keyword is null or o.orderNo = :keyword or m.loginId like concat('%', :keyword, '%')
+                   or m.name like concat('%', :keyword, '%'))
+            """)
+    Page<AdminOrderView> searchForAdmin(@Param("statuses") java.util.Collection<OrderStatus> statuses,
+            @Param("from") LocalDateTime from, @Param("to") LocalDateTime to, @Param("keyword") String keyword,
+            Pageable pageable);
 }

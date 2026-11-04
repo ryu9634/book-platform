@@ -38,6 +38,14 @@ class SecurityConfigTest {
     @MockitoBean
     LoginAdminDetailsService loginAdminDetailsService;
 
+    @MockitoBean
+    com.ryu.ebook.admin.home.service.DashboardService dashboardService;
+
+    @org.junit.jupiter.api.BeforeEach
+    void stubDashboard() {
+        given(dashboardService.summary()).willReturn(new com.ryu.ebook.admin.home.service.DashboardService.Summary(1, 9000, 2));
+    }
+
     private LoginAdmin loginAdmin() {
         return LoginAdmin.from(Member.createAdmin("librarian", passwordEncoder.encode("plain-password"), "사서",
                 "librarian@example.com"));

@@ -56,7 +56,12 @@ public enum ErrorCode {
 
     // 결제 (P)
     PAYMENT_AMOUNT_MISMATCH(HttpStatus.BAD_REQUEST, "P001", "결제 금액이 주문 금액과 다릅니다."),
-    PAYMENT_FAILED(HttpStatus.PAYMENT_REQUIRED, "P002", "결제에 실패했습니다. (%s)");
+    PAYMENT_FAILED(HttpStatus.PAYMENT_REQUIRED, "P002", "결제에 실패했습니다. (%s)"),
+
+    // 리뷰 (RV)
+    REVIEW_NOT_ALLOWED(HttpStatus.FORBIDDEN, "RV001", "구매한 회원만 리뷰를 쓸 수 있습니다."),
+    DUPLICATE_REVIEW(HttpStatus.CONFLICT, "RV002", "이미 리뷰를 쓴 전자책입니다. 기존 리뷰를 수정해 주세요."),
+    REVIEW_NOT_FOUND(HttpStatus.NOT_FOUND, "RV003", "리뷰를 찾을 수 없습니다.");
 
     // 도메인 에러 코드는 기능을 만들 때 도메인별 접두사로 추가합니다. (E 전자책, CT 장바구니, O 주문, P 결제, S 서재, RV 리뷰)
 

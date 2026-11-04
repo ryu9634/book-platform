@@ -36,6 +36,16 @@ class EbookViewControllerTest {
     @MockitoBean
     EbookQueryService ebookQueryService;
 
+    @MockitoBean
+    com.ryu.ebook.user.review.service.ReviewService reviewService;
+
+    @org.junit.jupiter.api.BeforeEach
+    void stubReviews() {
+        given(reviewService.summary(any())).willReturn(new com.ryu.ebook.review.repository.ReviewSummary(4.5, 2));
+        given(reviewService.reviews(any(), any())).willReturn(new PageImpl<>(List.of(new com.ryu.ebook.review.repository.ReviewView(
+                1L, 9L, "다른 회원", 5, "정말 좋은 책", java.time.LocalDateTime.of(2026, 11, 1, 10, 0), null))));
+    }
+
     private final EbookSummaryResponse summary =
             new EbookSummaryResponse(1L, "이펙티브 자바", "조슈아 블로크", null, 36000, 32400, 10, "IT", true);
 
@@ -92,5 +102,23 @@ class EbookViewControllerTest {
         mockMvc.perform(get("/ebooks/1").with(asMember))
                 .andExpect(content().string(containsString("장바구니 담기")))
                 .andExpect(content().string(containsString("바로 구매")));
+    }
+
+    @Test
+    @DisplayName("상세에 평균 별점과 리뷰가 보이고, 쓸 수 있는 회원에게만 리뷰 쓰기 버튼이 보인다")
+    void detail_리뷰() throws Exception {
+        given(ebookQueryService.getEbook(1L)).willReturn(new EbookDetailResponse(1L, null, "이펙티브 자바", "조슈아 블로크",
+                "인사이트", null, null, 36000, 32400, 10, true, 500, null, null));
+        mockMvc.perform(get("/ebooks/1"))
+                .andExpect(content().string(containsString("리뷰 2개 · 평균 ★ 4.5")))
+                .andExpect(content().string(containsString("정말 좋은 책")))
+                .andExpect(content().string(org.hamcrest.Matchers.not(containsString("리뷰 쓰기"))));
+
+        var loginMember = com.ryu.ebook.user.global.security.LoginMember.from(com.ryu.ebook.member.MemberFixture.activeMember());
+        org.springframework.test.util.ReflectionTestUtils.setField(loginMember, "memberId", 5L);
+        given(ebookQueryService.purchaseState(5L, 1L)).willReturn(com.ryu.ebook.user.ebook.dto.PurchaseState.OWNED);
+        given(reviewService.canWrite(5L, 1L)).willReturn(true);
+        mockMvc.perform(get("/ebooks/1").with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user(loginMember)))
+                .andExpect(content().string(containsString("리뷰 쓰기")));
     }
 }

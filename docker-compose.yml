@@ -89,6 +89,8 @@ services:
       DB_PASSWORD: ${EBOOK_DB_PASSWORD}
       EBOOK_STORAGE_DIR: /data/ebook-files
       EBOOK_JWT_SECRET: ${EBOOK_JWT_SECRET:?.env에 EBOOK_JWT_SECRET을 설정하세요}
+      # 도서관 서비스 API. 같은 compose 네트워크 안에서는 서비스 이름이 주소입니다.
+      LIBRARY_API_URL: http://library-user:8081
 
   ebook-admin:
     <<: *app-common

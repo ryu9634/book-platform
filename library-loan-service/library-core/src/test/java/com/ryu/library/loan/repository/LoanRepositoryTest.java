@@ -88,4 +88,22 @@ class LoanRepositoryTest {
         assertThat(loanRepository.countActiveByMemberIds(List.of(member.getId())))
                 .singleElement().satisfies(row -> assertThat(row.getCount()).isEqualTo(1));
     }
+
+    @Test
+    @DisplayName("인기 도서는 기간 안 대출 수가 많은 순서다")
+    void findPopular_대출수순() {
+        Book a = bookRepository.save(BookFixture.book("9780000000061", "인기 많음"));
+        Book b = bookRepository.save(BookFixture.book("9780000000062", "인기 적음"));
+        BookCopy a1 = bookCopyRepository.save(BookCopy.create(a, "LIB-POP-A1"));
+        BookCopy b1 = bookCopyRepository.save(BookCopy.create(b, "LIB-POP-B1"));
+        loanRepository.save(Loan.start(1L, a1.getId(), LOANED, 14));
+        loanRepository.save(Loan.start(2L, a1.getId(), LOANED, 14));
+        loanRepository.save(Loan.start(3L, b1.getId(), LOANED, 14));
+        loanRepository.saveAndFlush(Loan.start(4L, b1.getId(), LOANED.minusDays(200), 14));
+
+        List<PopularBookView> popular = loanRepository.findPopular(LOANED.minusDays(90), PageRequest.of(0, 10));
+
+        assertThat(popular).extracting(PopularBookView::title).containsExactly("인기 많음", "인기 적음");
+        assertThat(popular.get(0).loanCount()).isEqualTo(2);
+    }
 }

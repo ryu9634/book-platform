@@ -17,6 +17,14 @@
             <li th:replace="~{fragments/ebook-card :: card(${ebook})}"></li>
         </th:block>
     </ul>
+    <th:block th:unless="${#lists.isEmpty(fromLibrary)}">
+        <h2>도서관에서 많이 빌린 책, 전자책으로</h2>
+        <ul class="cards">
+            <th:block th:each="ebook : ${fromLibrary}">
+                <li th:replace="~{fragments/ebook-card :: card(${ebook})}"></li>
+            </th:block>
+        </ul>
+    </th:block>
     <h2>신간</h2>
     <ul class="cards">
         <th:block th:each="ebook : ${newArrivals}">

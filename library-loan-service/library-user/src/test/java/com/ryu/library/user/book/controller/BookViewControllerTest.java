@@ -130,4 +130,16 @@ class BookViewControllerTest {
         mockMvc.perform(get("/books/1").with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user(loginMember)))
                 .andExpect(content().string(containsString("대출 정지 중 (2026-11-20까지)")));
     }
+
+    @Test
+    @DisplayName("인기 도서 API는 토큰 없이 대출 수 순위를 돌려준다 (ebook 서비스가 호출)")
+    void api_인기도서_공개() throws Exception {
+        given(bookQueryService.popular(5)).willReturn(List.of(
+                new com.ryu.library.loan.repository.PopularBookView(1L, "9788966262281", "이펙티브 자바", "조슈아 블로크", 12)));
+
+        mockMvc.perform(get("/api/v1/books/popular").param("limit", "5"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data[0].isbn").value("9788966262281"))
+                .andExpect(jsonPath("$.data[0].loanCount").value(12));
+    }
 }

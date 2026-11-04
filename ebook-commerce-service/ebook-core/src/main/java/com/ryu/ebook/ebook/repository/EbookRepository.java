@@ -14,6 +14,8 @@ public interface EbookRepository extends JpaRepository<Ebook, Long> {
 
     boolean existsByIsbn(String isbn);
 
+    List<Ebook> findByIsbnIn(Collection<String> isbns);
+
     boolean existsByCategoryId(Long categoryId);
 
     List<Ebook> findTop8ByStatusOrderBySalesCountDescIdDesc(EbookStatus status);

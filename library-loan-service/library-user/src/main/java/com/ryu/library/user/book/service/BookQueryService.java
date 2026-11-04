@@ -8,6 +8,11 @@ import com.ryu.library.category.domain.Category;
 import com.ryu.library.category.repository.CategoryRepository;
 import com.ryu.library.global.exception.BusinessException;
 import com.ryu.library.global.exception.ErrorCode;
+import com.ryu.library.loan.repository.LoanRepository;
+import com.ryu.library.loan.repository.PopularBookView;
+import java.time.Clock;
+import java.time.LocalDateTime;
+import org.springframework.data.domain.PageRequest;
 import com.ryu.library.user.book.dto.BookDetailResponse;
 import com.ryu.library.user.book.dto.BookSummaryResponse;
 import com.ryu.library.user.book.dto.CategoryOption;
@@ -31,6 +36,11 @@ public class BookQueryService {
     private final BookRepository bookRepository;
     private final BookCopyRepository bookCopyRepository;
     private final CategoryRepository categoryRepository;
+    private final LoanRepository loanRepository;
+    private final Clock clock;
+
+    private static final int POPULAR_DAYS = 90;
+    private static final int POPULAR_MAX = 20;
 
     // 도서 목록 1번 + 권 수 집계 1번 + 분류 1번. 도서 수만큼 쿼리가 늘지 않습니다(N+1 방지).
     public Page<BookSummaryResponse> search(String keyword, Long categoryId, Pageable pageable) {
@@ -47,6 +57,12 @@ public class BookQueryService {
                 .map(book -> BookSummaryResponse.of(book, categoryNames.get(book.getCategoryId()),
                         counts.getOrDefault(book.getId(), CopyCounts.NONE)))
                 .toList();
+    }
+
+    // 최근 90일 대출 수 순위. ebook 서비스가 "도서관 인기 도서를 전자책으로" 추천에 씁니다.
+    public List<PopularBookView> popular(int limit) {
+        int size = Math.min(Math.max(limit, 1), POPULAR_MAX);
+        return loanRepository.findPopular(LocalDateTime.now(clock).minusDays(POPULAR_DAYS), PageRequest.of(0, size));
     }
 
     public BookDetailResponse getBook(Long bookId) {

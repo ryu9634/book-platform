@@ -20,6 +20,15 @@ public interface LoanRepository extends JpaRepository<Loan, Long> {
 
     long countByLoanedAtGreaterThanEqual(LocalDateTime from);
 
+    @Query("""
+            select new com.ryu.library.loan.repository.PopularBookView(b.id, b.isbn, b.title, b.author, count(l))
+            from Loan l join BookCopy c on c.id = l.bookCopyId join c.book b
+            where l.loanedAt >= :from
+            group by b.id, b.isbn, b.title, b.author
+            order by count(l) desc, b.id desc
+            """)
+    List<PopularBookView> findPopular(@Param("from") LocalDateTime from, Pageable pageable);
+
     long countByReturnedAtGreaterThanEqual(LocalDateTime from);
 
     @Query("""

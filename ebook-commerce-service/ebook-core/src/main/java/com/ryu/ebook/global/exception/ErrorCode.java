@@ -45,6 +45,8 @@ public enum ErrorCode {
 
     // 서재 (S)
     ALREADY_OWNED(HttpStatus.CONFLICT, "S001", "이미 내 서재에 있는 전자책입니다."),
+    BOOKSHELF_NOT_FOUND(HttpStatus.NOT_FOUND, "S002", "내 서재에서 찾을 수 없습니다."),
+    CONTENT_NOT_READY(HttpStatus.CONFLICT, "S003", "본문 파일을 준비 중입니다. 잠시 후 다시 시도해 주세요."),
 
     // 주문 (O)
     ORDER_NOT_FOUND(HttpStatus.NOT_FOUND, "O001", "주문을 찾을 수 없습니다."),

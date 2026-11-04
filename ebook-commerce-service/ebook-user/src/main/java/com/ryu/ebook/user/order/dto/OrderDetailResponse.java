@@ -22,9 +22,10 @@ public record OrderDetailResponse(
         PaymentStatus paymentStatus,
         String failReason) {
 
-    public static OrderDetailResponse of(Orders order, Payment payment) {
+    public static OrderDetailResponse of(Orders order, Payment payment, java.util.function.Predicate<Long> refundable) {
         List<Item> items = order.getItems().stream()
-                .map(i -> new Item(i.getId(), i.getEbookId(), i.getTitleSnapshot(), i.getPriceSnapshot(), i.getStatus()))
+                .map(i -> new Item(i.getId(), i.getEbookId(), i.getTitleSnapshot(), i.getPriceSnapshot(), i.getStatus(),
+                        refundable.test(i.getId())))
                 .toList();
         return new OrderDetailResponse(order.getOrderNo(), order.getStatus(), order.getTotalAmount(),
                 order.getDiscountAmount(), order.getPaidAmount(), order.getOrderedAt(), order.getPaidAt(), items,
@@ -49,6 +50,6 @@ public record OrderDetailResponse(
         };
     }
 
-    public record Item(Long orderItemId, Long ebookId, String title, long price, OrderItemStatus status) {
+    public record Item(Long orderItemId, Long ebookId, String title, long price, OrderItemStatus status, boolean refundable) {
     }
 }

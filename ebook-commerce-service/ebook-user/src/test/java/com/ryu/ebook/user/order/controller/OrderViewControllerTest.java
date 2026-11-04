@@ -53,6 +53,9 @@ class OrderViewControllerTest {
     @MockitoBean
     PaymentService paymentService;
 
+    @MockitoBean
+    com.ryu.ebook.order.service.RefundService refundService;
+
     private LoginMember loginMember;
 
     @BeforeEach
@@ -117,5 +120,16 @@ class OrderViewControllerTest {
                         .contentType(MediaType.APPLICATION_JSON).content("{\"ebookIds\":[]}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error.code").value("C001"));
+    }
+
+    @Test
+    @DisplayName("환불할 수 없는 항목이면 주문 상세로 돌아가 이유를 보여 준다")
+    void 환불_거부_안내() throws Exception {
+        org.mockito.BDDMockito.willThrow(new BusinessException(ErrorCode.REFUND_NOT_ALLOWED, "읽은 전자책은 환불할 수 없습니다."))
+                .given(refundService).refundByMember(5L, "20261104-000001", 100L);
+
+        mockMvc.perform(post("/orders/20261104-000001/items/100/refund").with(user(loginMember)).with(csrf()))
+                .andExpect(redirectedUrl("/orders/20261104-000001"))
+                .andExpect(flash().attribute("errorMessage", "읽은 전자책은 환불할 수 없습니다."));
     }
 }

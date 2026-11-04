@@ -6,12 +6,15 @@
 </head>
 <body>
 <section layout:fragment="content">
-    <h1>도서관에 오신 것을 환영합니다</h1>
-    <p th:if="${loginName != null}" th:text="|${loginName}님, 로그인되었습니다.|">로그인되었습니다.</p>
-    <form th:action="@{/books}" method="get" class="search">
-        <input type="text" name="keyword" placeholder="제목이나 저자로 검색">
-        <button type="submit">검색</button>
-    </form>
+    <div class="hero">
+        <h1>도서관에 오신 것을 환영합니다</h1>
+        <p th:if="${loginName != null}" th:text="|${loginName}님, 로그인되었습니다.|">로그인되었습니다.</p>
+        <p th:unless="${loginName != null}">읽고 싶은 책을 찾아 대출하고, 모두 대출 중이면 예약해 두세요.</p>
+        <form th:action="@{/books}" method="get" class="search">
+            <input type="text" name="keyword" placeholder="제목이나 저자로 검색">
+            <button type="submit">검색</button>
+        </form>
+    </div>
     <h2>신착 도서</h2>
     <p th:if="${#lists.isEmpty(newArrivals)}">아직 등록된 도서가 없습니다.</p>
     <ul class="cards">

@@ -2,17 +2,19 @@
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <body>
 <header th:fragment="header" class="header">
-    <a class="logo" th:href="@{/admin}">도서관 관리자</a>
-    <nav th:if="${loginName != null}">
-        <a th:href="@{/admin/books}">도서</a>
-        <a th:href="@{/admin/loans}">대출</a>
-        <a th:href="@{/admin/members}">회원</a>
-        <a th:href="@{/admin/categories}">분류</a>
-        <span th:text="|${loginName}님|">관리자님</span>
-        <form th:action="@{/admin/logout}" method="post" class="inline">
-            <button type="submit" class="link">로그아웃</button>
-        </form>
-    </nav>
+    <div class="header-inner">
+        <a class="logo" th:href="@{/admin}">도서관 관리자</a>
+        <nav th:if="${loginName != null}">
+            <a th:href="@{/admin/books}">도서</a>
+            <a th:href="@{/admin/loans}">대출</a>
+            <a th:href="@{/admin/members}">회원</a>
+            <a th:href="@{/admin/categories}">분류</a>
+            <span th:text="|${loginName}님|">관리자님</span>
+            <form th:action="@{/admin/logout}" method="post" class="inline">
+                <button type="submit" class="link">로그아웃</button>
+            </form>
+        </nav>
+    </div>
 </header>
 </body>
 </html>

@@ -6,10 +6,14 @@
 </head>
 <body>
 <section layout:fragment="content">
-    <form th:action="@{/ebooks}" method="get" class="search">
-        <input type="text" name="keyword" placeholder="제목이나 저자로 검색">
-        <button type="submit">검색</button>
-    </form>
+    <div class="hero">
+        <h1>오늘 읽을 전자책을 찾아보세요</h1>
+        <p>구매한 책은 내 서재에서 바로 읽을 수 있습니다.</p>
+        <form th:action="@{/ebooks}" method="get" class="search">
+            <input type="text" name="keyword" placeholder="제목이나 저자로 검색">
+            <button type="submit">검색</button>
+        </form>
+    </div>
     <h2>베스트셀러</h2>
     <p th:if="${#lists.isEmpty(bestsellers)}">아직 판매 중인 전자책이 없습니다.</p>
     <ul class="cards">

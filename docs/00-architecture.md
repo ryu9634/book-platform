@@ -1,0 +1,113 @@
+# 전체 구조
+
+## 1. 컨테이너 구성
+
+```
+┌─────────── library-loan-service ───────────┐   ┌────────── ebook-commerce-service ──────────┐
+│ library-user (8081)   library-admin (9081) │   │ ebook-user (8082)     ebook-admin (9082)   │
+│ 회원 화면 + API        관리자 화면 + API     │   │ 회원 화면 + API        관리자 화면 + API     │
+│        └──────── library-core ────────┘    │   │        └──────── ebook-core ────────┘      │
+│   엔티티, Repository, 도메인 규칙, Flyway    │   │   엔티티, Repository, 도메인 규칙, Flyway    │
+└──────────────────────┬─────────────────────┘   └──────────────────────┬─────────────────────┘
+                       │ jdbc (LIBRARY 스키마)                            │ jdbc (EBOOK 스키마)
+                       ▼                                                  ▼
+┌──────────────────────────────────────────────────────────────────────────────────────────┐
+│ oracle-db (1521)  gvenzl/oracle-free:23-slim                                             │
+│   사용자 LIBRARY / 사용자 EBOOK  (스키마 분리, 서로 접근 불가)                              │
+└──────────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+- 서비스마다 회원용(user)과 관리자용(admin) 앱을 따로 띄웁니다. 포트, 배포, Security 설정이 서로 독립적입니다.
+  관리자 포트(9xxx)는 운영 환경에서 사내망이나 VPN에서만 열어 외부 노출을 막는 것을 전제로 합니다.
+- 같은 서비스의 user, admin 앱은 같은 스키마를 쓰고 core 모듈(엔티티, Repository, 마이그레이션)을 공유합니다.
+- DB는 Oracle 인스턴스 하나에 스키마 2개로 분리합니다.
+  MacBook에서 Oracle 컨테이너 2개는 메모리 부담이 크고, 실무에서도 "인스턴스는 공유하고 스키마로 격리"하는 경우가 많습니다.
+- 두 서비스(library, ebook)는 서로 호출하지 않습니다. 회원 테이블도 각자 가집니다.
+  (나중에 "통합 로그인" 또는 "대출 이력 기반 ebook 추천"을 확장 과제로 붙일 수 있습니다.)
+- 로컬 개발 시에는 Oracle만 Docker로 띄우고 애플리케이션은 IDE에서 실행합니다.
+  Docker 이미지 빌드는 구현이 끝난 뒤 마지막 단계에서 붙입니다.
+
+## 2. 기술 스택 (두 서비스 공통)
+
+| 구분 | 선택 | 비고 |
+|---|---|---|
+| Language | Java 21 (LTS) | 가상 스레드 사용 가능. Spring AI의 LLM 호출처럼 오래 기다리는 I/O에 유리 |
+| Framework | Spring Boot 4.1.x, Spring MVC | Spring Framework 7, Hibernate 7, Jackson 3 |
+| View | Thymeleaf + Thymeleaf Layout Dialect | 간단한 화면 |
+| ORM | Spring Data JPA (Hibernate) | 복잡한 조회는 QueryDSL 또는 JPQL |
+| DB | Oracle 23 Free (Docker) | ID는 SEQUENCE 전략 |
+| Migration | Flyway (`spring-boot-starter-flyway`, `flyway-database-oracle`) | 서비스별 스키마에 각자 적용, `ddl-auto: validate` |
+| Security | Spring Security | 화면: 세션(Form Login), API: JWT. SecurityFilterChain 2개로 분리 |
+| Validation | spring-boot-starter-validation | |
+| API 문서 | springdoc-openapi | /swagger-ui.html |
+| Test | JUnit 5, Mockito, Testcontainers(Oracle `gvenzl/oracle-free:23-slim`) | Boot 4에서는 `@MockBean` 대신 `@MockitoBean` |
+| Build | Gradle 9 (Groovy DSL), Gradle Wrapper | |
+| CI | GitHub Actions | build + test |
+| AI (예정) | Spring AI 2.0 | Boot 4.0~4.1 호환. Oracle 23의 VECTOR 타입을 벡터 저장소로 쓸 수 있음 |
+
+## 3. 모듈과 패키지 구조 (두 서비스 공통)
+
+Gradle 멀티모듈입니다. 모듈 이름의 `library`는 ebook 서비스에서 `ebook`으로 바뀝니다.
+
+```
+library-loan-service/
+├── library-core/     일반 jar. 실행하지 않음
+├── library-user/     회원 앱 (bootJar)  :8081
+└── library-admin/    관리자 앱 (bootJar) :9081
+```
+
+의존 방향은 `user → core`, `admin → core` 뿐입니다. user와 admin은 서로 의존하지 않습니다.
+
+```
+library-core   com.ryu.library
+├── global
+│   ├── config             JpaConfig(Auditing), ClockConfig
+│   ├── exception          ErrorCode, BusinessException, ErrorResponse, GlobalExceptionHandler(API 공통)
+│   └── common             BaseTimeEntity, ApiResponse, PageResponse
+├── member
+│   ├── domain             Member, MemberRole, MemberStatus
+│   ├── repository         MemberRepository
+│   └── service            두 앱이 함께 쓰는 도메인 규칙만 (예: 회원 정지 판단)
+├── book ...
+└── loan ...
+resources/application-core.yml, db/migration/
+testFixtures/              TestcontainersConfiguration (user, admin 테스트에서도 사용)
+
+library-user   com.ryu.library
+├── LibraryUserApplication  메인 클래스를 com.ryu.library에 두어 core까지 스캔
+└── user
+    ├── global             SecurityConfig, 화면용 예외 처리
+    ├── loan
+    │   ├── controller     LoanViewController(화면), LoanApiController(/api)
+    │   ├── service        LoanService (@Transactional, 흐름 조립, Response DTO 변환)
+    │   └── dto            LoanCreateRequest, LoanResponse
+    └── ...
+
+library-admin  com.ryu.library
+├── LibraryAdminApplication
+└── admin
+    ├── global             SecurityConfig(ADMIN만 허용), 화면용 예외 처리
+    ├── book               controller, service, dto (도서·소장 자료 관리)
+    └── ...
+```
+
+## 4. 개발 규칙
+
+DB 설계, 엔티티, 계층, 예외, 트랜잭션, 테스트, Git 등 두 서비스 공통 규칙은 `01-rules.md`를 따릅니다.
+
+## 5. 인증 흐름 (두 서비스 공통, user와 admin 앱이 각각 가짐)
+
+```
+브라우저 (Thymeleaf)                        외부 클라이언트 / Swagger
+    │ POST /login (폼)                            │ POST /api/v1/auth/login (JSON)
+    ▼                                             ▼
+ 세션 생성, JSESSIONID 쿠키                   AccessToken(30분) + RefreshToken(7일) 발급
+    │                                             │ Authorization: Bearer ...
+    ▼                                             ▼
+ formLoginFilterChain (/**)                   apiFilterChain (/api/**, stateless)
+```
+
+구현 순서: 세션 Form Login 먼저 → API용 JWT 추가 → FilterChain 분리 커밋.
+
+- user 앱과 admin 앱은 세션을 공유하지 않습니다. 관리자는 admin 앱에서 따로 로그인합니다.
+- 계정은 같은 MEMBER 테이블을 쓰고, admin 앱은 ROLE이 ADMIN인 회원만 로그인을 허용합니다.

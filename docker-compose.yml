@@ -1,0 +1,25 @@
+# 로컬 개발용: Oracle만 띄우고 애플리케이션은 IDE에서 실행
+# 애플리케이션 컨테이너(library-user, library-admin, ebook-user, ebook-admin)는 구현 완료 후 추가
+# 비밀번호는 같은 폴더의 .env 파일에서 읽습니다. (.env.example 참고, .env는 git에 올리지 않음)
+services:
+  oracle-db:
+    image: gvenzl/oracle-free:23-slim
+    container_name: book-platform-oracle
+    ports:
+      - "1521:1521"
+    environment:
+      ORACLE_PASSWORD: ${ORACLE_PASSWORD:?.env에 ORACLE_PASSWORD를 설정하세요}               # SYS / SYSTEM
+      APP_USER: library                                                                     # 첫 번째 스키마
+      APP_USER_PASSWORD: ${LIBRARY_DB_PASSWORD:?.env에 LIBRARY_DB_PASSWORD를 설정하세요}
+      EBOOK_DB_PASSWORD: ${EBOOK_DB_PASSWORD:?.env에 EBOOK_DB_PASSWORD를 설정하세요}         # 초기화 스크립트에서 사용
+    volumes:
+      - oracle-data:/opt/oracle/oradata
+      - ./docker/oracle/init:/container-entrypoint-initdb.d   # ebook 사용자 생성 스크립트
+    healthcheck:
+      test: ["CMD", "healthcheck.sh"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+
+volumes:
+  oracle-data:

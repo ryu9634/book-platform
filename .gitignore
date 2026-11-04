@@ -1,0 +1,18 @@
+### OS ###
+.DS_Store
+
+### IDE ###
+.idea/
+*.iml
+.vscode/
+
+### Gradle ###
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+### 로컬 설정 (비밀번호 포함) ###
+application-local.yml
+
+### 로컬 환경 변수 (비밀번호 포함) ###
+.env

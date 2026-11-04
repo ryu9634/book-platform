@@ -65,6 +65,8 @@ services:
       <<: *app-env
       DB_USERNAME: library
       DB_PASSWORD: ${LIBRARY_DB_PASSWORD}
+      LIBRARY_ADMIN_LOGIN_ID: ${LIBRARY_ADMIN_LOGIN_ID:-}
+      LIBRARY_ADMIN_PASSWORD: ${LIBRARY_ADMIN_PASSWORD:-}
 
   ebook-user:
     <<: *app-common

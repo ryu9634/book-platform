@@ -144,4 +144,20 @@ class LoanViewControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error.code").value("L002"));
     }
+
+    @Test
+    @DisplayName("반납과 연장은 결과를 내 대출 화면에 알려 주고, 연장할 수 없으면 이유를 보여 준다")
+    void 반납_연장() throws Exception {
+        // given
+        org.mockito.BDDMockito.willThrow(new BusinessException(ErrorCode.EXTEND_NOT_ALLOWED_RESERVED))
+                .given(loanService).extend(5L, 100L);
+
+        // when, then
+        mockMvc.perform(post("/loans/100/return").with(user(loginMember)).with(csrf()))
+                .andExpect(redirectedUrl("/loans/my"))
+                .andExpect(flash().attribute("message", "반납했습니다."));
+        mockMvc.perform(post("/loans/100/extend").with(user(loginMember)).with(csrf()))
+                .andExpect(redirectedUrl("/loans/my"))
+                .andExpect(flash().attribute("errorMessage", "예약한 회원이 있어 연장할 수 없습니다."));
+    }
 }

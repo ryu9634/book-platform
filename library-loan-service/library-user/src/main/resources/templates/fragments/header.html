@@ -7,6 +7,7 @@
         <a th:href="@{/books}">도서 검색</a>
         <th:block th:if="${loginName != null}">
             <a th:href="@{/loans/my}">내 대출</a>
+            <a th:href="@{/reservations/my}">내 예약</a>
             <span th:text="|${loginName}님|">회원님</span>
             <form th:action="@{/logout}" method="post" class="inline">
                 <button type="submit" class="link">로그아웃</button>

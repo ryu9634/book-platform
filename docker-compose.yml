@@ -50,6 +50,7 @@ services:
       <<: *app-env
       DB_USERNAME: library
       DB_PASSWORD: ${LIBRARY_DB_PASSWORD}
+      LIBRARY_JWT_SECRET: ${LIBRARY_JWT_SECRET:?.env에 LIBRARY_JWT_SECRET을 설정하세요}
 
   library-admin:
     <<: *app-common

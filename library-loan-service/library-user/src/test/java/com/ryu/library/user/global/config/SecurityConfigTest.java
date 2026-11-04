@@ -3,6 +3,7 @@ package com.ryu.library.user.global.config;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestBuilders.formLogin;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.security.test.web.servlet.response.SecurityMockMvcResultMatchers.authenticated;
 import static org.springframework.security.test.web.servlet.response.SecurityMockMvcResultMatchers.unauthenticated;
@@ -13,23 +14,27 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.ryu.library.global.config.PasswordEncoderConfig;
 import com.ryu.library.member.domain.Member;
 import com.ryu.library.user.global.security.LoginMember;
 import com.ryu.library.user.global.security.LoginMemberDetailsService;
 import com.ryu.library.user.home.controller.HomeViewController;
 import com.ryu.library.user.member.controller.LoginViewController;
+import com.ryu.library.user.member.controller.MemberApiController;
+import com.ryu.library.user.member.dto.MemberResponse;
+import com.ryu.library.user.member.service.MemberService;
+import com.ryu.library.user.support.WebSecurityTest;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
-import org.springframework.context.annotation.Import;
+import org.springframework.mock.web.MockHttpSession;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-@WebMvcTest(controllers = {HomeViewController.class, LoginViewController.class})
-@Import({SecurityConfig.class, PasswordEncoderConfig.class})
+@WebMvcTest(controllers = {HomeViewController.class, LoginViewController.class, MemberApiController.class})
+@WebSecurityTest
 class SecurityConfigTest {
 
     @Autowired
@@ -38,8 +43,11 @@ class SecurityConfigTest {
     @Autowired
     PasswordEncoder passwordEncoder;
 
-    @MockitoBean
+    @Autowired
     LoginMemberDetailsService loginMemberDetailsService;
+
+    @MockitoBean
+    MemberService memberService;
 
     private LoginMember loginMember(String rawPassword) {
         Member member = Member.create("reader01", passwordEncoder.encode(rawPassword), "홍길동", "reader01@example.com", null);
@@ -109,5 +117,41 @@ class SecurityConfigTest {
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.error.code").value("C006"));
+    }
+
+    @Test
+    @DisplayName("Access Token이 있으면 API에서 토큰의 회원 ID로 내 정보를 조회한다")
+    void API_JWT인증_내정보() throws Exception {
+        // given
+        given(memberService.getMyInfo(1L)).willReturn(new MemberResponse(1L, "reader01", "홍길동", "reader01@example.com"));
+
+        // when, then
+        mockMvc.perform(get("/api/v1/members/me")
+                        .with(jwt().jwt(token -> token.subject("1")).authorities(new SimpleGrantedAuthority("ROLE_USER"))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.loginId").value("reader01"));
+    }
+
+    @Test
+    @DisplayName("위조되거나 형식이 틀린 Access Token은 401 JSON으로 거부한다")
+    void API_잘못된토큰_401JSON() throws Exception {
+        mockMvc.perform(get("/api/v1/members/me").header("Authorization", "Bearer not-a-jwt"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.error.code").value("C006"));
+    }
+
+    @Test
+    @DisplayName("화면 로그인으로 받은 세션으로는 API가 인증되지 않는다")
+    void API_세션로그인만_401() throws Exception {
+        // given: 화면 로그인으로 세션을 받는다
+        given(loginMemberDetailsService.loadUserByUsername("reader01")).willReturn(loginMember("plain-password"));
+        MockHttpSession session = (MockHttpSession) mockMvc
+                .perform(formLogin("/login").user("loginId", "reader01").password("plain-password"))
+                .andExpect(authenticated())
+                .andReturn().getRequest().getSession(false);
+
+        // when, then: 같은 세션으로 API를 호출해도 JWT가 없으면 401
+        mockMvc.perform(get("/api/v1/members/me").session(session))
+                .andExpect(status().isUnauthorized());
     }
 }

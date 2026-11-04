@@ -116,6 +116,15 @@ DB 설계, 엔티티, 계층, 예외, 트랜잭션, 테스트, Git 등 두 서�
 
 구현 순서: 세션 Form Login 먼저 → API용 JWT 추가 → FilterChain 분리 커밋.
 
+### API 토큰 (user 앱)
+- Access Token: JWT(HS256), 30분. `sub`에 회원 ID, `roles`에 권한만 넣습니다. 서명과 만료 검증은 Spring Security 리소스 서버(`oauth2ResourceServer().jwt()`)가 합니다.
+- Refresh Token: 무작위 32바이트 문자열, 7일. DB(REFRESH_TOKEN)에는 SHA-256 해시만 저장합니다.
+  - 갱신할 때마다 새 토큰으로 바꾸고 쓴 토큰은 폐기합니다(토큰 교체).
+  - 폐기된 토큰이 다시 오면 탈취로 보고 그 회원의 토큰을 모두 폐기합니다.
+- 로그아웃은 Refresh Token만 폐기합니다. 이미 발급된 Access Token은 만료될 때까지 유효합니다(짧은 만료 시간으로 위험을 줄임).
+- 서명 키는 환경 변수 `LIBRARY_JWT_SECRET`(32바이트 이상)로만 넣습니다. 없거나 짧으면 앱이 시작되지 않습니다.
+- 화면 세션 쿠키로는 API가 인증되지 않습니다. API 체인은 세션을 읽지 않습니다.
+
 - user 앱과 admin 앱은 세션을 공유하지 않습니다. 관리자는 admin 앱에서 따로 로그인합니다.
 - 계정은 같은 MEMBER 테이블을 쓰고, admin 앱은 ROLE이 ADMIN인 회원만 로그인을 허용합니다. 일반 회원 아이디는 "없는 계정"과 똑같이 거부합니다.
 - 관리자 화면 로그인 URL은 `/admin/login`, 회원 화면은 `/login`입니다. 로그인 성공 처리와 실패 처리는 Spring Security 필터가 맡습니다.

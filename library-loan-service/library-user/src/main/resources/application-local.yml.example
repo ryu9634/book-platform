@@ -7,6 +7,11 @@ spring:
       hibernate:
         format_sql: true
 
+# API JWT 서명 키. 루트 .env의 LIBRARY_JWT_SECRET과 같은 값을 직접 넣습니다.
+library:
+  jwt:
+    secret:
+
 logging:
   level:
     org.hibernate.SQL: debug

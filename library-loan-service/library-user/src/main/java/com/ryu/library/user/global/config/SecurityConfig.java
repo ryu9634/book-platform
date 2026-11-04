@@ -6,12 +6,15 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.web.SecurityFilterChain;
 import tools.jackson.databind.json.JsonMapper;
 
@@ -28,11 +31,18 @@ public class SecurityConfig {
         return provider;
     }
 
-    // API(/api/**): 세션을 쓰지 않습니다. JWT 인증은 다음 단계에서 추가하고, 그 전까지는 공개 API만 열어 둡니다.
+    // API 로그인(/api/v1/auth/login)에서 화면 로그인과 같은 방식으로 아이디와 비밀번호를 확인할 때 씁니다.
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationProvider authenticationProvider) {
+        return new ProviderManager(authenticationProvider);
+    }
+
+    // API(/api/**): 세션 없이 Authorization: Bearer <Access Token>(JWT)으로 인증합니다.
     // 세션 쿠키로 인증하지 않으므로 CSRF 보호가 필요 없습니다.
     @Bean
     @Order(1)
-    public SecurityFilterChain apiFilterChain(HttpSecurity http, JsonMapper jsonMapper) throws Exception {
+    public SecurityFilterChain apiFilterChain(HttpSecurity http, JsonMapper jsonMapper,
+            JwtAuthenticationConverter jwtAuthenticationConverter) throws Exception {
         ApiSecurityErrorHandler errorHandler = new ApiSecurityErrorHandler(jsonMapper);
         return http
                 .securityMatcher("/api/**")
@@ -40,7 +50,13 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.POST, "/api/v1/members").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/auth/login", "/api/v1/auth/refresh",
+                                "/api/v1/auth/logout").permitAll()
                         .anyRequest().authenticated())
+                .oauth2ResourceServer(oauth2 -> oauth2
+                        .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter))
+                        .authenticationEntryPoint(errorHandler)
+                        .accessDeniedHandler(errorHandler))
                 .exceptionHandling(e -> e.authenticationEntryPoint(errorHandler).accessDeniedHandler(errorHandler))
                 .build();
     }

@@ -25,6 +25,15 @@
     <div class="actions" id="ebook-actions">
         <p th:unless="${ebook.onSale()}" class="alert">판매 중지된 도서입니다. 이미 구매하신 분은 내 서재에서 읽을 수 있습니다.</p>
         <a th:if="${ebook.onSale() and loginName == null}" class="button" th:href="@{/login}">로그인 후 구매</a>
+        <a th:if="${purchase == 'OWNED'}" class="button" th:href="@{/bookshelf}">서재에서 읽기</a>
+        <a th:if="${purchase == 'IN_CART' and ebook.onSale()}" class="button secondary" th:href="@{/cart}">장바구니 보기</a>
+        <th:block th:if="${purchase == 'CAN_PURCHASE' and ebook.onSale()}">
+            <form th:action="@{/cart/items}" method="post" class="inline">
+                <input type="hidden" name="ebookId" th:value="${ebook.id()}">
+                <button type="submit" class="button secondary">장바구니 담기</button>
+            </form>
+            <a class="button" th:href="@{/orders/checkout(ebookIds=${ebook.id()})}">바로 구매</a>
+        </th:block>
     </div>
     <p class="description" th:if="${ebook.description()}" th:text="${ebook.description()}">소개</p>
     <a th:href="@{/ebooks}">목록으로</a>

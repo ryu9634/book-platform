@@ -129,4 +129,30 @@ class BookAdminViewControllerTest {
                 .andExpect(status().isNotFound())
                 .andExpect(view().name("error/business"));
     }
+
+    @Test
+    @DisplayName("권을 추가하면 상세 화면으로 돌아가 추가한 권 수를 알려 준다")
+    void addCopies_성공_상세로() throws Exception {
+        // given
+        given(bookAdminService.addCopies(10L, 3)).willReturn(3);
+
+        // when, then
+        mockMvc.perform(post("/admin/books/10/copies").with(admin()).with(csrf()).param("quantity", "3"))
+                .andExpect(redirectedUrl("/admin/books/10"))
+                .andExpect(flash().attribute("message", "소장 자료 3권을 추가했습니다."));
+    }
+
+    @Test
+    @DisplayName("상태 변경이 허용되지 않으면 오류 화면 대신 상세 화면에 이유를 보여 준다")
+    void changeCopyStatus_허용안됨_상세에안내() throws Exception {
+        // given
+        given(bookAdminService.changeCopyStatus(1L, com.ryu.library.admin.book.dto.CopyStatusAction.LOST))
+                .willThrow(new BusinessException(ErrorCode.COPY_STATUS_CHANGE_NOT_ALLOWED));
+
+        // when, then
+        mockMvc.perform(post("/admin/books/copies/1/status").with(admin()).with(csrf())
+                        .param("action", "LOST").param("bookId", "10"))
+                .andExpect(redirectedUrl("/admin/books/10"))
+                .andExpect(flash().attribute("errorMessage", "현재 상태에서는 바꿀 수 없습니다."));
+    }
 }

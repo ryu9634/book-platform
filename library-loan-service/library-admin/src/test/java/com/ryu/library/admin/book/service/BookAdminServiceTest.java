@@ -10,7 +10,12 @@ import static org.mockito.Mockito.verify;
 import com.ryu.library.admin.book.client.NationalLibraryClient;
 import com.ryu.library.admin.book.client.NlBookInfo;
 import com.ryu.library.admin.book.dto.BookForm;
+import com.ryu.library.admin.book.dto.CopyStatusAction;
+import com.ryu.library.book.BookFixture;
 import com.ryu.library.book.domain.Book;
+import com.ryu.library.book.domain.BookCopy;
+import com.ryu.library.book.domain.BookCopyStatus;
+import com.ryu.library.book.repository.BookCopyRepository;
 import com.ryu.library.book.repository.BookRepository;
 import com.ryu.library.category.repository.CategoryRepository;
 import com.ryu.library.global.exception.BusinessException;
@@ -23,6 +28,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import static org.mockito.Mockito.times;
 
 @ExtendWith(MockitoExtension.class)
 class BookAdminServiceTest {
@@ -34,6 +40,9 @@ class BookAdminServiceTest {
 
     @Mock
     CategoryRepository categoryRepository;
+
+    @Mock
+    BookCopyRepository bookCopyRepository;
 
     @Mock
     NationalLibraryClient nationalLibraryClient;
@@ -115,5 +124,65 @@ class BookAdminServiceTest {
         assertThatThrownBy(() -> bookAdminService.register(form))
                 .extracting("errorCode").isEqualTo(ErrorCode.CATEGORY_NOT_FOUND);
         verify(bookRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("권을 추가하면 이미 있는 권 수 다음 번호부터 바코드를 만든다")
+    void addCopies_기존2권_3번부터() {
+        // given
+        Book book = BookFixture.book(ISBN, "이펙티브 자바");
+        given(bookRepository.findById(7L)).willReturn(Optional.of(book));
+        given(bookCopyRepository.countByBookId(7L)).willReturn(2L);
+
+        // when
+        bookAdminService.addCopies(7L, 2);
+
+        // then
+        ArgumentCaptor<BookCopy> captor = ArgumentCaptor.forClass(BookCopy.class);
+        verify(bookCopyRepository, times(2)).save(captor.capture());
+        assertThat(captor.getAllValues()).extracting(BookCopy::getBarcode)
+                .containsExactly("LIB-000007-003", "LIB-000007-004");
+        assertThat(captor.getAllValues()).extracting(BookCopy::getStatus).containsOnly(BookCopyStatus.AVAILABLE);
+    }
+
+    @Test
+    @DisplayName("한 번에 추가할 수 있는 권 수는 1~10권이다")
+    void addCopies_수량범위밖_C001() {
+        assertThatThrownBy(() -> bookAdminService.addCopies(7L, 0))
+                .extracting("errorCode").isEqualTo(ErrorCode.INVALID_INPUT_VALUE);
+        assertThatThrownBy(() -> bookAdminService.addCopies(7L, 11))
+                .extracting("errorCode").isEqualTo(ErrorCode.INVALID_INPUT_VALUE);
+        verify(bookCopyRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("대출 중인 권을 분실 처리하려 하면 거부한다")
+    void changeCopyStatus_대출중분실_B009() {
+        // given
+        BookCopy copy = BookCopy.create(BookFixture.book(ISBN, "제목"), "LIB-000001-001");
+        copy.lend();
+        given(bookCopyRepository.findById(1L)).willReturn(Optional.of(copy));
+
+        // when, then
+        assertThatThrownBy(() -> bookAdminService.changeCopyStatus(1L, CopyStatusAction.LOST))
+                .extracting("errorCode").isEqualTo(ErrorCode.COPY_STATUS_CHANGE_NOT_ALLOWED);
+    }
+
+    @Test
+    @DisplayName("도서를 수정하면 ISBN은 그대로 두고 서지 정보만 바꾼다")
+    void update_서지정보변경_ISBN유지() {
+        // given
+        Book book = BookFixture.book(ISBN, "옛 제목");
+        given(bookRepository.findById(7L)).willReturn(Optional.of(book));
+        BookForm form = BookForm.withIsbn("9790000000000");
+        form.setTitle("새 제목");
+        form.setAuthor("새 저자");
+
+        // when
+        bookAdminService.update(7L, form);
+
+        // then
+        assertThat(book.getTitle()).isEqualTo("새 제목");
+        assertThat(book.getIsbn()).isEqualTo(ISBN);
     }
 }

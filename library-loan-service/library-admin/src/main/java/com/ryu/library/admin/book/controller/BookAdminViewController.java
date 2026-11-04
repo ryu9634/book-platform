@@ -1,6 +1,8 @@
 package com.ryu.library.admin.book.controller;
 
 import com.ryu.library.admin.book.dto.BookForm;
+import com.ryu.library.admin.book.dto.BookResponse;
+import com.ryu.library.admin.book.dto.CopyStatusAction;
 import com.ryu.library.admin.book.service.BookAdminService;
 import com.ryu.library.global.exception.BusinessException;
 import jakarta.validation.Valid;
@@ -69,7 +71,53 @@ public class BookAdminViewController {
     @GetMapping("/{bookId}")
     public String detail(@PathVariable Long bookId, Model model) {
         model.addAttribute("book", bookAdminService.getBook(bookId));
+        model.addAttribute("copies", bookAdminService.getCopies(bookId));
         return "admin/book/detail";
+    }
+
+    @GetMapping("/{bookId}/edit")
+    public String editForm(@PathVariable Long bookId, Model model) {
+        BookResponse book = bookAdminService.getBook(bookId);
+        model.addAttribute("bookId", bookId);
+        return renderForm(BookForm.from(book, book.categoryId()), model);
+    }
+
+    @PostMapping("/{bookId}/edit")
+    public String edit(@PathVariable Long bookId, @Valid @ModelAttribute("bookForm") BookForm form,
+            BindingResult bindingResult, Model model, RedirectAttributes redirectAttributes) {
+        model.addAttribute("bookId", bookId);
+        if (bindingResult.hasErrors()) {
+            return renderForm(form, model);
+        }
+        try {
+            bookAdminService.update(bookId, form);
+        } catch (BusinessException e) {
+            bindingResult.reject(e.getErrorCode().getCode(), e.getMessage());
+            return renderForm(form, model);
+        }
+        redirectAttributes.addFlashAttribute("message", "도서 정보를 수정했습니다.");
+        return "redirect:/admin/books/" + bookId;
+    }
+
+    @PostMapping("/{bookId}/copies")
+    public String addCopies(@PathVariable Long bookId, @RequestParam(defaultValue = "1") int quantity,
+            RedirectAttributes redirectAttributes) {
+        int added = bookAdminService.addCopies(bookId, quantity);
+        redirectAttributes.addFlashAttribute("message", "소장 자료 " + added + "권을 추가했습니다.");
+        return "redirect:/admin/books/" + bookId;
+    }
+
+    // 상태 변경이 허용되지 않으면(예: 대출 중인 권 분실 처리) 오류 화면 대신 상세 화면에 이유를 보여 줍니다.
+    @PostMapping("/copies/{copyId}/status")
+    public String changeCopyStatus(@PathVariable Long copyId, @RequestParam CopyStatusAction action,
+            @RequestParam Long bookId, RedirectAttributes redirectAttributes) {
+        try {
+            bookAdminService.changeCopyStatus(copyId, action);
+            redirectAttributes.addFlashAttribute("message", "소장 자료 상태를 바꿨습니다.");
+        } catch (BusinessException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        }
+        return "redirect:/admin/books/" + bookId;
     }
 
     private String renderForm(BookForm form, Model model) {

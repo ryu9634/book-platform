@@ -56,6 +56,19 @@ public class BookForm {
         return form;
     }
 
+    public static BookForm from(BookResponse book, Long categoryId) {
+        BookForm form = new BookForm();
+        form.isbn = book.isbn();
+        form.title = book.title();
+        form.author = book.author();
+        form.publisher = book.publisher();
+        form.publishedDate = book.publishedDate();
+        form.description = book.description();
+        form.coverImageUrl = book.coverImageUrl();
+        form.categoryId = categoryId;
+        return form;
+    }
+
     public static BookForm withIsbn(String isbn) {
         BookForm form = new BookForm();
         form.isbn = isbn;

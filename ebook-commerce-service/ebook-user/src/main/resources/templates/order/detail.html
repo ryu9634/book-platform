@@ -23,7 +23,11 @@
             <td><a th:href="@{/ebooks/{id}(id=${item.ebookId()})}" th:text="${item.title()}">제목</a></td>
             <td th:text="|${#numbers.formatInteger(item.price(), 1, 'COMMA')}원|">9,000원</td>
             <td th:text="${item.status().name() == 'REFUNDED'} ? '환불 완료' : '-'">-</td>
-            <td class="row-actions" th:attr="data-item-id=${item.orderItemId()}"></td>
+            <td class="row-actions">
+                <form th:if="${item.refundable()}" th:action="@{/orders/{no}/items/{id}/refund(no=${order.orderNo()}, id=${item.orderItemId()})}" method="post" class="inline">
+                    <button type="submit" class="link">환불 요청</button>
+                </form>
+            </td>
         </tr>
         </tbody>
     </table>

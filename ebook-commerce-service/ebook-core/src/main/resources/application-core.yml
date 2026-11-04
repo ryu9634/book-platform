@@ -25,6 +25,9 @@ spring:
     locations: classpath:db/migration
 
 ebook:
+  # 환불 정책: 결제 후 며칠 안에, 읽지 않은 항목만 환불할 수 있습니다.
+  policy:
+    refund-days: 7
   # 전자책 본문 파일 저장소. Docker에서는 회원 앱과 관리자 앱이 같은 볼륨을 씁니다.
   storage:
     dir: ${EBOOK_STORAGE_DIR:./build/ebook-files}

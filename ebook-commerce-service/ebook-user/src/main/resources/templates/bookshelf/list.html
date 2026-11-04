@@ -7,6 +7,7 @@
 <body>
 <section layout:fragment="content">
     <p th:if="${message}" class="alert" th:text="${message}">처리 결과</p>
+    <p th:if="${errorMessage}" class="alert error" th:text="${errorMessage}">오류</p>
     <h1>내 서재</h1>
     <p th:if="${#lists.isEmpty(books)}">아직 산 전자책이 없습니다. <a th:href="@{/ebooks}">전자책 둘러보기</a></p>
     <ul class="cards">
@@ -16,7 +17,9 @@
             <strong th:text="${b.title()}">제목</strong>
             <span class="muted" th:text="${b.author()}">저자</span>
             <span class="muted" th:text="${b.lastReadAt() != null} ? |${b.lastReadPage()} / ${b.pageCount()}쪽까지 읽음| : '아직 읽지 않음'">진행률</span>
-            <span class="row-actions" th:attr="data-bookshelf-id=${b.bookshelfId()}"></span>
+            <span class="row-actions">
+                <a class="button" th:href="@{/bookshelf/{id}/read(id=${b.bookshelfId()})}" th:text="${b.lastReadAt() != null} ? '이어 읽기' : '읽기'">읽기</a>
+            </span>
         </li>
     </ul>
 </section>

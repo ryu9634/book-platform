@@ -5,6 +5,7 @@ import com.ryu.ebook.global.common.PageResponse;
 import com.ryu.ebook.global.exception.BusinessException;
 import com.ryu.ebook.global.exception.ErrorCode;
 import com.ryu.ebook.order.service.OrderService;
+import com.ryu.ebook.order.service.RefundService;
 import com.ryu.ebook.payment.service.PaymentService;
 import com.ryu.ebook.user.order.dto.OrderDetailResponse;
 import com.ryu.ebook.user.order.dto.OrderRequest;
@@ -35,6 +36,7 @@ public class OrderApiController {
     private final OrderService orderService;
     private final OrderQueryService orderQueryService;
     private final PaymentService paymentService;
+    private final RefundService refundService;
 
     @PostMapping
     public ResponseEntity<ApiResponse<Map<String, String>>> create(@AuthenticationPrincipal Jwt jwt,
@@ -63,6 +65,13 @@ public class OrderApiController {
         if (!outcome.approved()) {
             throw new BusinessException(ErrorCode.PAYMENT_FAILED, outcome.failReason());
         }
+        return ApiResponse.ok();
+    }
+
+    @PostMapping("/{orderNo}/items/{orderItemId}/refund")
+    public ApiResponse<Void> refund(@AuthenticationPrincipal Jwt jwt, @PathVariable String orderNo,
+            @PathVariable Long orderItemId) {
+        refundService.refundByMember(memberId(jwt), orderNo, orderItemId);
         return ApiResponse.ok();
     }
 

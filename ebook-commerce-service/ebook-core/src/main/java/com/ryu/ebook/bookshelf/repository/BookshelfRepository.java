@@ -18,6 +18,8 @@ public interface BookshelfRepository extends JpaRepository<Bookshelf, Long> {
 
     Optional<Bookshelf> findByOrderItemId(Long orderItemId);
 
+    List<Bookshelf> findByOrderItemIdIn(Collection<Long> orderItemIds);
+
     // 최근에 읽은 책이 먼저, 읽지 않은 책은 산 순서대로 뒤에 둡니다.
     @Query("""
             select new com.ryu.ebook.bookshelf.repository.BookshelfView(s.id, e.id, e.title, e.author, e.coverImageUrl,

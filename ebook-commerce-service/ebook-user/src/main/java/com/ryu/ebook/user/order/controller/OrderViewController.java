@@ -2,6 +2,7 @@ package com.ryu.ebook.user.order.controller;
 
 import com.ryu.ebook.global.exception.BusinessException;
 import com.ryu.ebook.order.service.OrderService;
+import com.ryu.ebook.order.service.RefundService;
 import com.ryu.ebook.payment.domain.PaymentMethod;
 import com.ryu.ebook.payment.service.PaymentService;
 import com.ryu.ebook.user.global.security.LoginMember;
@@ -28,6 +29,7 @@ public class OrderViewController {
     private final OrderService orderService;
     private final OrderQueryService orderQueryService;
     private final PaymentService paymentService;
+    private final RefundService refundService;
 
     @GetMapping("/orders/checkout")
     public String checkout(@AuthenticationPrincipal LoginMember loginMember,
@@ -87,6 +89,18 @@ public class OrderViewController {
         try {
             orderService.cancel(loginMember.getMemberId(), orderNo);
             redirectAttributes.addFlashAttribute("message", "주문을 취소했습니다.");
+        } catch (BusinessException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        }
+        return "redirect:/orders/" + orderNo;
+    }
+
+    @PostMapping("/orders/{orderNo}/items/{orderItemId}/refund")
+    public String refund(@AuthenticationPrincipal LoginMember loginMember, @PathVariable String orderNo,
+            @PathVariable Long orderItemId, RedirectAttributes redirectAttributes) {
+        try {
+            refundService.refundByMember(loginMember.getMemberId(), orderNo, orderItemId);
+            redirectAttributes.addFlashAttribute("message", "환불했습니다. 내 서재에서 빠집니다.");
         } catch (BusinessException e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         }

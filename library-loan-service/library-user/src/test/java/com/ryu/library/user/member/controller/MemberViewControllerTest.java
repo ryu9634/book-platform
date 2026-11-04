@@ -82,4 +82,25 @@ class MemberViewControllerTest {
                 .andExpect(model().attributeHasFieldErrors("signupForm", "loginId"))
                 .andExpect(content().string(containsString("이미 사용 중인 아이디입니다.")));
     }
+
+    @Test
+    @DisplayName("내 정보 화면은 정지 상태를 안내하고, 새 비밀번호 확인이 다르면 바꾸지 않는다")
+    void 내정보_비밀번호변경() throws Exception {
+        // given
+        var loginMember = com.ryu.library.user.global.security.LoginMember.from(com.ryu.library.member.MemberFixture.activeMember());
+        org.springframework.test.util.ReflectionTestUtils.setField(loginMember, "memberId", 5L);
+        given(memberService.getMyPage(5L)).willReturn(new com.ryu.library.user.member.dto.MyPageResponse(
+                "reader01", "홍길동", "reader01@example.com", null, true, java.time.LocalDate.of(2026, 11, 20)));
+        var asMember = org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user(loginMember);
+
+        // when, then
+        mockMvc.perform(get("/members/me").with(asMember))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("2026-11-20까지 대출이 정지되었습니다.")));
+        mockMvc.perform(post("/members/me/password").with(asMember).with(csrf())
+                        .param("currentPassword", "old").param("newPassword", "new-password").param("newPasswordConfirm", "different"))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeHasFieldErrors("passwordForm", "newPasswordConfirm"));
+        verify(memberService, never()).changePassword(org.mockito.ArgumentMatchers.anyLong(), any(), any());
+    }
 }

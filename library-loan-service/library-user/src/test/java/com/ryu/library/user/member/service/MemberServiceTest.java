@@ -87,4 +87,22 @@ class MemberServiceTest {
                 .isEqualTo(ErrorCode.DUPLICATE_EMAIL);
         verify(memberRepository, never()).save(any());
     }
+
+    @Test
+    @DisplayName("현재 비밀번호가 맞으면 새 비밀번호를 암호화해 바꾸고, 틀리면 M006으로 거부한다")
+    void changePassword_현재비밀번호확인() {
+        // given
+        Member member = com.ryu.library.member.MemberFixture.activeMember();
+        given(memberRepository.findById(5L)).willReturn(java.util.Optional.of(member));
+        given(passwordEncoder.matches("right", member.getPassword())).willReturn(true);
+        given(passwordEncoder.encode("new-password")).willReturn("encoded-new");
+
+        // when
+        memberService.changePassword(5L, "right", "new-password");
+
+        // then
+        assertThat(member.getPassword()).isEqualTo("encoded-new");
+        assertThatThrownBy(() -> memberService.changePassword(5L, "wrong", "new-password"))
+                .extracting("errorCode").isEqualTo(ErrorCode.PASSWORD_MISMATCH);
+    }
 }

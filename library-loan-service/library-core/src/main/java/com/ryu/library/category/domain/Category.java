@@ -1,6 +1,8 @@
 package com.ryu.library.category.domain;
 
 import com.ryu.library.global.common.BaseTimeEntity;
+import com.ryu.library.global.exception.BusinessException;
+import com.ryu.library.global.exception.ErrorCode;
 import jakarta.persistence.Column;
 import jakarta.persistence.ConstraintMode;
 import jakarta.persistence.Entity;
@@ -39,4 +41,27 @@ public class Category extends BaseTimeEntity {
 
     @Column(nullable = false)
     private int sortOrder;
+
+    private Category(Category parent, String name, int sortOrder) {
+        this.parent = parent;
+        this.name = name;
+        this.sortOrder = sortOrder;
+    }
+
+    // 분류는 2단계(예: 문학 > 한국소설)까지만 만듭니다.
+    public static Category create(Category parent, String name, int sortOrder) {
+        if (parent != null && parent.getParent() != null) {
+            throw new BusinessException(ErrorCode.CATEGORY_DEPTH_EXCEEDED);
+        }
+        return new Category(parent, name, sortOrder);
+    }
+
+    public boolean isTopLevel() {
+        return parent == null;
+    }
+
+    public void rename(String name, int sortOrder) {
+        this.name = name;
+        this.sortOrder = sortOrder;
+    }
 }

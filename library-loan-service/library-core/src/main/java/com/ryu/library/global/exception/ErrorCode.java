@@ -25,6 +25,8 @@ public enum ErrorCode {
     MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "M003", "회원을 찾을 수 없습니다."),
     MEMBER_SUSPENDED(HttpStatus.FORBIDDEN, "M004", "연체로 대출이 정지된 상태입니다. (%s까지)"),
     MEMBER_WITHDRAWN(HttpStatus.FORBIDDEN, "M005", "탈퇴한 회원입니다."),
+    PASSWORD_MISMATCH(HttpStatus.BAD_REQUEST, "M006", "현재 비밀번호가 올바르지 않습니다."),
+    CANNOT_CHANGE_OWN_ROLE(HttpStatus.BAD_REQUEST, "M007", "자기 자신의 권한은 바꿀 수 없습니다."),
 
     // 인증 (A)
     INVALID_CREDENTIALS(HttpStatus.UNAUTHORIZED, "A001", "아이디 또는 비밀번호가 올바르지 않습니다."),
@@ -40,6 +42,8 @@ public enum ErrorCode {
     COPY_NOT_FOUND(HttpStatus.NOT_FOUND, "B007", "소장 자료를 찾을 수 없습니다."),
     COPY_NOT_AVAILABLE(HttpStatus.CONFLICT, "B008", "대출할 수 없는 자료입니다. 이미 대출 중이거나 예약된 자료입니다."),
     COPY_STATUS_CHANGE_NOT_ALLOWED(HttpStatus.CONFLICT, "B009", "현재 상태에서는 바꿀 수 없습니다."),
+    CATEGORY_DEPTH_EXCEEDED(HttpStatus.BAD_REQUEST, "B010", "분류는 2단계까지만 만들 수 있습니다."),
+    CATEGORY_IN_USE(HttpStatus.CONFLICT, "B011", "하위 분류나 도서가 있는 분류는 삭제할 수 없습니다."),
 
     // 대출 (L)
     LOAN_LIMIT_EXCEEDED(HttpStatus.BAD_REQUEST, "L001", "최대 대출 권수(%s권)를 넘을 수 없습니다."),

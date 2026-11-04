@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/default}">
+<head>
+    <title>회원 관리</title>
+</head>
+<body>
+<section layout:fragment="content">
+    <p th:if="${message}" class="alert" th:text="${message}">처리 결과</p>
+    <p th:if="${errorMessage}" class="alert error" th:text="${errorMessage}">오류</p>
+    <h1>회원 관리</h1>
+    <form th:action="@{/admin/members}" method="get" class="search">
+        <input type="text" name="keyword" th:value="${keyword}" placeholder="아이디, 이름, 이메일">
+        <button type="submit">검색</button>
+    </form>
+    <table class="table">
+        <thead><tr><th>아이디</th><th>이름</th><th>이메일</th><th>권한</th><th>상태</th><th>대출 중</th><th></th></tr></thead>
+        <tbody>
+        <tr th:each="m : ${page.content}">
+            <td th:text="${m.loginId()}">reader01</td>
+            <td th:text="${m.name()}">홍길동</td>
+            <td th:text="${m.email()}">reader01@example.com</td>
+            <td th:text="${m.role().name() == 'ADMIN'} ? '관리자' : '회원'">회원</td>
+            <td th:text="${m.statusLabel()}">정상</td>
+            <td th:text="${m.activeLoanCount()}">0</td>
+            <td class="row-actions">
+                <form th:if="${m.status().name() == 'ACTIVE'}" th:action="@{/admin/members/{id}/suspend(id=${m.id()})}" method="post" class="inline">
+                    <input type="number" name="days" value="7" min="1" max="365" class="days">
+                    <button type="submit" class="link">일 정지</button>
+                </form>
+                <form th:if="${m.status().name() == 'SUSPENDED'}" th:action="@{/admin/members/{id}/release(id=${m.id()})}" method="post" class="inline">
+                    <button type="submit" class="link">정지 해제</button>
+                </form>
+                <form th:action="@{/admin/members/{id}/role(id=${m.id()})}" method="post" class="inline">
+                    <input type="hidden" name="role" th:value="${m.role().name() == 'ADMIN'} ? 'USER' : 'ADMIN'">
+                    <button type="submit" class="link" th:text="${m.role().name() == 'ADMIN'} ? '관리자 해제' : '관리자 지정'">관리자 지정</button>
+                </form>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+    <nav class="pager" th:if="${page.totalPages > 1}">
+        <a th:if="${page.hasPrevious()}" th:href="@{/admin/members(page=${page.number - 1}, keyword=${keyword})}">이전</a>
+        <span th:text="|${page.number + 1} / ${page.totalPages}|">1 / 1</span>
+        <a th:if="${page.hasNext()}" th:href="@{/admin/members(page=${page.number + 1}, keyword=${keyword})}">다음</a>
+    </nav>
+</section>
+</body>
+</html>

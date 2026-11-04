@@ -116,6 +116,14 @@ public class Member extends BaseTimeEntity {
         this.status = MemberStatus.SUSPENDED;
     }
 
+    public void changePassword(String encodedPassword) {
+        this.password = encodedPassword;
+    }
+
+    public void changeRole(MemberRole role) {
+        this.role = role;
+    }
+
     // 관리자가 정지를 직접 풉니다.
     public void releaseSuspension() {
         if (status == MemberStatus.SUSPENDED) {

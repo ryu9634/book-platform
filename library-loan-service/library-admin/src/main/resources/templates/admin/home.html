@@ -7,10 +7,18 @@
 <body>
 <section layout:fragment="content">
     <h1>관리자 대시보드</h1>
-    <ul>
-        <li><a th:href="@{/admin/books}">도서 관리</a> · 국립중앙도서관 ISBN으로 도서 등록</li>
+    <ul class="stats">
+        <li><strong th:text="${summary.todayLoans()}">0</strong><span>오늘 대출</span></li>
+        <li><strong th:text="${summary.todayReturns()}">0</strong><span>오늘 반납</span></li>
+        <li><a th:href="@{/admin/loans/overdue}"><strong th:text="${summary.overdueLoans()}">0</strong><span>연체</span></a></li>
+        <li><strong th:text="${summary.waitingReservations()}">0</strong><span>예약 대기</span></li>
     </ul>
-    <p>소장 자료, 대출, 회원 관리 메뉴는 기능을 만들면서 추가합니다.</p>
+    <ul>
+        <li><a th:href="@{/admin/books}">도서 관리</a> · 국립중앙도서관 ISBN으로 도서 등록, 소장 자료 관리</li>
+        <li><a th:href="@{/admin/loans}">대출 현황</a> · 데스크 반납</li>
+        <li><a th:href="@{/admin/members}">회원 관리</a> · 정지와 해제, 권한</li>
+        <li><a th:href="@{/admin/categories}">분류 관리</a></li>
+    </ul>
 </section>
 </body>
 </html>

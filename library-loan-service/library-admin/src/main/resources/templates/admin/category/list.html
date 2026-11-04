@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/default}">
+<head>
+    <title>분류 관리</title>
+</head>
+<body>
+<section layout:fragment="content" class="medium">
+    <p th:if="${message}" class="alert" th:text="${message}">처리 결과</p>
+    <p th:if="${errorMessage}" class="alert error" th:text="${errorMessage}">오류</p>
+    <h1>분류 관리</h1>
+    <p class="hint">분류는 2단계까지 만들 수 있습니다. 하위 분류나 도서가 있는 분류는 삭제할 수 없습니다.</p>
+    <form th:action="@{/admin/categories}" method="post" class="search">
+        <input type="text" name="name" placeholder="새 최상위 분류 이름" maxlength="50" required>
+        <input type="number" name="sortOrder" value="0" class="days">
+        <button type="submit">추가</button>
+    </form>
+    <ul class="tree">
+        <li th:each="top : ${tree}">
+            <form th:action="@{/admin/categories/{id}(id=${top.id()})}" method="post" class="inline">
+                <input type="text" name="name" th:value="${top.name()}" maxlength="50" required>
+                <input type="number" name="sortOrder" th:value="${top.sortOrder()}" class="days">
+                <button type="submit" class="link">저장</button>
+            </form>
+            <form th:action="@{/admin/categories/{id}/delete(id=${top.id()})}" method="post" class="inline">
+                <button type="submit" class="link">삭제</button>
+            </form>
+            <ul>
+                <li th:each="child : ${top.children()}">
+                    <form th:action="@{/admin/categories/{id}(id=${child.id()})}" method="post" class="inline">
+                        <input type="text" name="name" th:value="${child.name()}" maxlength="50" required>
+                        <input type="number" name="sortOrder" th:value="${child.sortOrder()}" class="days">
+                        <button type="submit" class="link">저장</button>
+                    </form>
+                    <form th:action="@{/admin/categories/{id}/delete(id=${child.id()})}" method="post" class="inline">
+                        <button type="submit" class="link">삭제</button>
+                    </form>
+                </li>
+                <li>
+                    <form th:action="@{/admin/categories}" method="post" class="inline">
+                        <input type="hidden" name="parentId" th:value="${top.id()}">
+                        <input type="text" name="name" placeholder="하위 분류 추가" maxlength="50" required>
+                        <button type="submit" class="link">추가</button>
+                    </form>
+                </li>
+            </ul>
+        </li>
+    </ul>
+</section>
+</body>
+</html>

@@ -22,6 +22,8 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
 
     boolean existsByBookIdAndStatus(Long bookId, ReservationStatus status);
 
+    long countByStatus(ReservationStatus status);
+
     // 대기 순번: 나보다 먼저 예약한 대기자 수 + 1
     @Query("""
             select count(r) + 1 from Reservation r

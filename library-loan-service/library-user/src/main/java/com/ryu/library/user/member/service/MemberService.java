@@ -6,6 +6,9 @@ import com.ryu.library.member.domain.Member;
 import com.ryu.library.member.repository.MemberRepository;
 import com.ryu.library.user.member.dto.MemberResponse;
 import com.ryu.library.user.member.dto.MemberSignupRequest;
+import com.ryu.library.user.member.dto.MyPageResponse;
+import java.time.Clock;
+import java.time.LocalDate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -20,6 +23,7 @@ public class MemberService {
 
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
+    private final Clock clock;
 
     // 동시에 같은 아이디로 가입하면 둘 다 중복 확인을 통과할 수 있습니다.
     // 그 경우 UNIQUE 제약이 막고 GlobalExceptionHandler가 409로 바꿉니다.
@@ -42,6 +46,26 @@ public class MemberService {
 
         log.info("member signed up. memberId={}", saved.getId());
         return MemberResponse.from(saved);
+    }
+
+    // 현재 비밀번호가 맞을 때만 바꿉니다. 새 비밀번호도 BCrypt로 암호화합니다.
+    @Transactional
+    public void changePassword(Long memberId, String currentPassword, String newPassword) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
+        if (!passwordEncoder.matches(currentPassword, member.getPassword())) {
+            throw new BusinessException(ErrorCode.PASSWORD_MISMATCH);
+        }
+        member.changePassword(passwordEncoder.encode(newPassword));
+        log.info("member password changed. memberId={}", memberId);
+    }
+
+    public MyPageResponse getMyPage(Long memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
+        boolean suspended = member.isSuspendedOn(LocalDate.now(clock));
+        return new MyPageResponse(member.getLoginId(), member.getName(), member.getEmail(), member.getPhone(),
+                suspended, suspended ? member.getSuspendedUntil() : null);
     }
 
     public MemberResponse getMyInfo(Long memberId) {

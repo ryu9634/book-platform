@@ -3,6 +3,7 @@ package com.ryu.ebook.admin.ebook.controller;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.BDDMockito.then;
 import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -62,10 +63,11 @@ class EbookAdminViewControllerTest {
     }
 
     @Test
-    @DisplayName("CSRF 토큰 없이 파일을 올리면 막는다")
-    void uploadFile_CSRF없음_403() throws Exception {
+    @DisplayName("CSRF 토큰 없이 파일을 올리면 처리하지 않고 로그인 화면으로 보낸다")
+    void uploadFile_CSRF없음_처리안함() throws Exception {
         MockMultipartFile txt = new MockMultipartFile("file", "본문.txt", "text/plain", "본문".getBytes());
         mockMvc.perform(multipart("/admin/ebooks/1/file").file(txt).with(user("admin").roles("ADMIN")))
-                .andExpect(status().isForbidden());
+                .andExpect(redirectedUrl("/admin/login?expired"));
+        then(ebookAdminService).shouldHaveNoInteractions();
     }
 }

@@ -2,10 +2,13 @@ package com.ryu.library.admin.global.config;
 
 import static org.mockito.BDDMockito.given;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestBuilders.formLogin;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.security.test.web.servlet.response.SecurityMockMvcResultMatchers.authenticated;
 import static org.springframework.security.test.web.servlet.response.SecurityMockMvcResultMatchers.unauthenticated;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -105,5 +108,16 @@ class SecurityConfigTest {
         mockMvc.perform(get("/api/v1/admin/books"))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.error.code").value("C006"));
+    }
+
+    @Test
+    @DisplayName("세션이 끝난 뒤 예전 로그인 화면에서 제출하면 403 대신 로그인 화면으로 다시 보낸다")
+    void 로그인_만료된CSRF토큰_로그인화면으로() throws Exception {
+        mockMvc.perform(post("/admin/login").param("loginId", "librarian").param("password", "plain-password")
+                        .with(csrf().useInvalidToken()))
+                .andExpect(unauthenticated())
+                .andExpect(redirectedUrl("/admin/login?expired"));
+        mockMvc.perform(get("/admin/login").param("expired", ""))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("세션이 만료되었습니다")));
     }
 }

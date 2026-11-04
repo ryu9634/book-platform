@@ -3,6 +3,7 @@ package com.ryu.library.admin.book.controller;
 import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -112,10 +113,11 @@ class BookAdminViewControllerTest {
     }
 
     @Test
-    @DisplayName("CSRF 토큰 없이 등록 요청을 보내면 막는다")
-    void register_CSRF없음_403() throws Exception {
+    @DisplayName("CSRF 토큰 없이 등록 요청을 보내면 처리하지 않고 로그인 화면으로 보낸다")
+    void register_CSRF없음_처리안함() throws Exception {
         mockMvc.perform(post("/admin/books").with(admin()).param("isbn", ISBN))
-                .andExpect(status().isForbidden());
+                .andExpect(redirectedUrl("/admin/login?expired"));
+        then(bookAdminService).shouldHaveNoInteractions();
     }
 
     @Test

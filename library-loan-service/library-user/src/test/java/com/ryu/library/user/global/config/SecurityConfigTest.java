@@ -107,8 +107,10 @@ class SecurityConfigTest {
     @Test
     @DisplayName("로그아웃은 CSRF 토큰이 있어야 하고, 성공하면 로그인 화면으로 보낸다")
     void 로그아웃_CSRF토큰_성공() throws Exception {
+        // 토큰이 없으면 로그아웃하지 않고 로그인 화면으로 보냅니다.
         mockMvc.perform(post("/logout").with(user(loginMember("plain-password"))))
-                .andExpect(status().isForbidden());
+                .andExpect(authenticated())
+                .andExpect(redirectedUrl("/login?expired"));
         mockMvc.perform(post("/logout").with(user(loginMember("plain-password"))).with(csrf()))
                 .andExpect(redirectedUrl("/login?logout"));
     }
@@ -156,5 +158,16 @@ class SecurityConfigTest {
         // when, then: 같은 세션으로 API를 호출해도 JWT가 없으면 401
         mockMvc.perform(get("/api/v1/members/me").session(session))
                 .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @DisplayName("세션이 끝난 뒤 예전 로그인 화면에서 제출하면 403 대신 로그인 화면으로 다시 보낸다")
+    void 로그인_만료된CSRF토큰_로그인화면으로() throws Exception {
+        mockMvc.perform(post("/login").param("loginId", "reader01").param("password", "plain-password")
+                        .with(csrf().useInvalidToken()))
+                .andExpect(unauthenticated())
+                .andExpect(redirectedUrl("/login?expired"));
+        mockMvc.perform(get("/login").param("expired", ""))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("세션이 만료되었습니다")));
     }
 }

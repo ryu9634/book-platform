@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/default}">
+<head>
+    <title>장바구니</title>
+</head>
+<body>
+<section layout:fragment="content">
+    <p th:if="${errorMessage}" class="alert error" th:text="${errorMessage}">오류</p>
+    <h1>장바구니</h1>
+    <p th:if="${#lists.isEmpty(cart.items())}">장바구니가 비어 있습니다. <a th:href="@{/ebooks}">전자책 둘러보기</a></p>
+    <form th:unless="${#lists.isEmpty(cart.items())}" th:action="@{/orders/checkout}" method="get">
+        <table class="table">
+            <thead><tr><th></th><th>전자책</th><th>정가</th><th>판매가</th><th></th></tr></thead>
+            <tbody>
+            <tr th:each="item : ${cart.items()}">
+                <td><input type="checkbox" name="ebookIds" th:value="${item.ebookId()}" th:checked="${item.onSale()}" th:disabled="${!item.onSale()}"></td>
+                <td>
+                    <a th:href="@{/ebooks/{id}(id=${item.ebookId()})}" th:text="${item.title()}">제목</a>
+                    <span th:unless="${item.onSale()}" class="badge">판매 중지</span>
+                </td>
+                <td class="strike" th:text="|${#numbers.formatInteger(item.price(), 1, 'COMMA')}원|">10,000원</td>
+                <td th:text="|${#numbers.formatInteger(item.salePrice(), 1, 'COMMA')}원|">9,000원</td>
+                <td><button type="submit" class="link" th:formaction="@{/cart/items/{id}/delete(id=${item.cartItemId()})}" formmethod="post">삭제</button></td>
+            </tr>
+            </tbody>
+        </table>
+        <p class="total" th:text="|합계 ${#numbers.formatInteger(cart.totalSalePrice(), 1, 'COMMA')}원 (할인 ${#numbers.formatInteger(cart.discount(), 1, 'COMMA')}원)|">합계</p>
+        <button type="submit" class="button">선택한 전자책 주문하기</button>
+    </form>
+</section>
+</body>
+</html>

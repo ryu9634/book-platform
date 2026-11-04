@@ -1,5 +1,7 @@
 package com.ryu.ebook.user.ebook.service;
 
+import com.ryu.ebook.bookshelf.repository.BookshelfRepository;
+import com.ryu.ebook.cart.repository.CartRepository;
 import com.ryu.ebook.category.domain.Category;
 import com.ryu.ebook.category.repository.CategoryRepository;
 import com.ryu.ebook.ebook.domain.Ebook;
@@ -11,6 +13,7 @@ import com.ryu.ebook.user.ebook.dto.CategoryOption;
 import com.ryu.ebook.user.ebook.dto.EbookDetailResponse;
 import com.ryu.ebook.user.ebook.dto.EbookSort;
 import com.ryu.ebook.user.ebook.dto.EbookSummaryResponse;
+import com.ryu.ebook.user.ebook.dto.PurchaseState;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
@@ -33,6 +36,8 @@ public class EbookQueryService {
 
     private final EbookRepository ebookRepository;
     private final CategoryRepository categoryRepository;
+    private final BookshelfRepository bookshelfRepository;
+    private final CartRepository cartRepository;
 
     public Page<EbookSummaryResponse> search(String keyword, Long categoryId, EbookSort sort, Pageable pageable) {
         String normalized = keyword == null || keyword.isBlank() ? null : keyword.trim();
@@ -57,6 +62,14 @@ public class EbookQueryService {
                 .filter(e -> !e.isHidden())
                 .orElseThrow(() -> new BusinessException(ErrorCode.EBOOK_NOT_FOUND));
         return EbookDetailResponse.of(ebook, categoryNames().get(ebook.getCategoryId()));
+    }
+
+    public PurchaseState purchaseState(Long memberId, Long ebookId) {
+        if (bookshelfRepository.existsByMemberIdAndEbookIdAndActiveTrue(memberId, ebookId)) {
+            return PurchaseState.OWNED;
+        }
+        boolean inCart = cartRepository.findByMemberId(memberId).map(cart -> cart.contains(ebookId)).orElse(false);
+        return inCart ? PurchaseState.IN_CART : PurchaseState.CAN_PURCHASE;
     }
 
     public List<CategoryOption> categoryOptions() {

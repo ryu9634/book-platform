@@ -2,6 +2,8 @@ package com.ryu.ebook.user.ebook.controller;
 
 import com.ryu.ebook.user.ebook.dto.EbookSort;
 import com.ryu.ebook.user.ebook.service.EbookQueryService;
+import com.ryu.ebook.user.global.security.LoginMember;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
@@ -28,8 +30,11 @@ public class EbookViewController {
     }
 
     @GetMapping("/ebooks/{ebookId}")
-    public String detail(@PathVariable Long ebookId, Model model) {
+    public String detail(@PathVariable Long ebookId, @AuthenticationPrincipal LoginMember loginMember, Model model) {
         model.addAttribute("ebook", ebookQueryService.getEbook(ebookId));
+        if (loginMember != null) {
+            model.addAttribute("purchase", ebookQueryService.purchaseState(loginMember.getMemberId(), ebookId).name());
+        }
         return "ebook/detail";
     }
 }

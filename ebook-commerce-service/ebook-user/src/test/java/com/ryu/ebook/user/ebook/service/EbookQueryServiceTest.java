@@ -26,7 +26,8 @@ import org.springframework.data.domain.Pageable;
 class EbookQueryServiceTest {
 
     private final EbookRepository ebookRepository = mock(EbookRepository.class);
-    private final EbookQueryService service = new EbookQueryService(ebookRepository, mock(CategoryRepository.class));
+    private final EbookQueryService service = new EbookQueryService(ebookRepository, mock(CategoryRepository.class),
+            mock(com.ryu.ebook.bookshelf.repository.BookshelfRepository.class), mock(com.ryu.ebook.cart.repository.CartRepository.class));
 
     @Test
     @DisplayName("정렬 값을 정해진 정렬로 바꿔 조회한다")

@@ -44,3 +44,4 @@ a { color: #2457c5; }
 .inline { display: inline; margin: 0; }
 .discount { color: #d9480f; font-weight: bold; margin-right: 4px; }
 .strike { text-decoration: line-through; color: #999; margin-right: 6px; }
+.total { font-size: 1.1em; font-weight: bold; text-align: right; }

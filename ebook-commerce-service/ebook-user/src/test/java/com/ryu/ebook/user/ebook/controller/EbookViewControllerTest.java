@@ -73,4 +73,24 @@ class EbookViewControllerTest {
         mockMvc.perform(get("/api/v1/ebooks").param("sort", "PASSWORD"))
                 .andExpect(status().isBadRequest());
     }
+
+    @Test
+    @DisplayName("로그인한 회원에게 보유 중이면 서재에서 읽기, 장바구니에 있으면 장바구니 보기를 보여 준다")
+    void detail_구매상태_버튼() throws Exception {
+        given(ebookQueryService.getEbook(1L)).willReturn(new EbookDetailResponse(1L, null, "이펙티브 자바", "조슈아 블로크",
+                "인사이트", null, null, 36000, 32400, 10, true, 500, null, null));
+        var loginMember = com.ryu.ebook.user.global.security.LoginMember.from(com.ryu.ebook.member.MemberFixture.activeMember());
+        org.springframework.test.util.ReflectionTestUtils.setField(loginMember, "memberId", 5L);
+        var asMember = org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user(loginMember);
+        given(ebookQueryService.purchaseState(5L, 1L))
+                .willReturn(com.ryu.ebook.user.ebook.dto.PurchaseState.OWNED)
+                .willReturn(com.ryu.ebook.user.ebook.dto.PurchaseState.IN_CART)
+                .willReturn(com.ryu.ebook.user.ebook.dto.PurchaseState.CAN_PURCHASE);
+
+        mockMvc.perform(get("/ebooks/1").with(asMember)).andExpect(content().string(containsString("서재에서 읽기")));
+        mockMvc.perform(get("/ebooks/1").with(asMember)).andExpect(content().string(containsString("장바구니 보기")));
+        mockMvc.perform(get("/ebooks/1").with(asMember))
+                .andExpect(content().string(containsString("장바구니 담기")))
+                .andExpect(content().string(containsString("바로 구매")));
+    }
 }

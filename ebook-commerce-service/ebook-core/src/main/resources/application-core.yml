@@ -23,3 +23,10 @@ spring:
   flyway:
     enabled: true
     locations: classpath:db/migration
+
+ebook:
+  # 전자책 본문 파일 저장소. Docker에서는 회원 앱과 관리자 앱이 같은 볼륨을 씁니다.
+  storage:
+    dir: ${EBOOK_STORAGE_DIR:./build/ebook-files}
+    max-file-size: 5MB
+    chars-per-page: 1500

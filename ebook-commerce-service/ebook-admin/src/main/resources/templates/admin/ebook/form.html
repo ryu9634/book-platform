@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/default}">
+<head>
+    <title th:text="${ebookId} ? '전자책 수정' : '전자책 등록'">전자책 등록</title>
+</head>
+<body>
+<section layout:fragment="content" class="medium">
+    <h1 th:text="${ebookId} ? '전자책 수정' : '전자책 등록'">전자책 등록</h1>
+    <form th:action="${ebookId} ? @{/admin/ebooks/{id}/edit(id=${ebookId})} : @{/admin/ebooks}" th:object="${ebookForm}" method="post" class="form">
+        <p th:if="${#fields.hasGlobalErrors()}" class="alert error" th:each="err : ${#fields.globalErrors()}" th:text="${err}">오류</p>
+        <label for="isbn">ISBN (선택)</label>
+        <input type="text" th:field="*{isbn}" maxlength="13" th:readonly="${ebookId != null}">
+        <p class="field-error" th:errors="*{isbn}"></p>
+        <label for="title">제목</label>
+        <input type="text" th:field="*{title}">
+        <p class="field-error" th:errors="*{title}"></p>
+        <label for="author">저자</label>
+        <input type="text" th:field="*{author}">
+        <p class="field-error" th:errors="*{author}"></p>
+        <label for="publisher">출판사</label>
+        <input type="text" th:field="*{publisher}">
+        <label for="price">정가 (원)</label>
+        <input type="number" th:field="*{price}" min="0">
+        <p class="field-error" th:errors="*{price}"></p>
+        <label for="salePrice">판매가 (원)</label>
+        <input type="number" th:field="*{salePrice}" min="0">
+        <p class="field-error" th:errors="*{salePrice}"></p>
+        <label for="publishedDate">출판일</label>
+        <input type="date" th:field="*{publishedDate}">
+        <label for="categoryId">분류</label>
+        <select th:field="*{categoryId}">
+            <option value="">선택 안 함</option>
+            <option th:each="c : ${categories}" th:value="${c.id()}" th:text="${c.name()}">분류</option>
+        </select>
+        <label for="coverImageUrl">표지 이미지 URL</label>
+        <input type="text" th:field="*{coverImageUrl}">
+        <label for="description">소개</label>
+        <textarea th:field="*{description}" rows="6"></textarea>
+        <p class="field-error" th:errors="*{description}"></p>
+        <button type="submit" th:text="${ebookId} ? '수정' : '등록'">등록</button>
+    </form>
+</section>
+</body>
+</html>

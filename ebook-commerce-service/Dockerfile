@@ -15,7 +15,8 @@ RUN --mount=type=cache,target=/root/.gradle \
 
 # ---------- 2단계: 실행 이미지 ----------
 FROM eclipse-temurin:21-jre
-RUN groupadd --system app && useradd --system --gid app app
+RUN groupadd --system app && useradd --system --gid app app \
+    && mkdir -p /data/ebook-files && chown app:app /data/ebook-files
 WORKDIR /app
 # 자주 바뀌지 않는 계층부터 복사해야 코드만 바뀌었을 때 의존성 계층을 다시 쓰지 않습니다.
 COPY --from=build /workspace/extracted/dependencies/ ./

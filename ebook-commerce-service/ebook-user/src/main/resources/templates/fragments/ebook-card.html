@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<body>
+<li th:fragment="card(ebook)" class="card">
+    <a th:href="@{/ebooks/{id}(id=${ebook.id()})}">
+        <img th:if="${ebook.coverImageUrl()}" th:src="${ebook.coverImageUrl()}" alt="표지" class="cover-sm">
+        <div th:unless="${ebook.coverImageUrl()}" class="cover-sm placeholder" th:text="${ebook.title()}">표지</div>
+        <strong th:text="${ebook.title()}">제목</strong>
+    </a>
+    <span class="muted" th:text="${ebook.author()}">저자</span>
+    <span>
+        <span class="discount" th:if="${ebook.discountRate() > 0}" th:text="|${ebook.discountRate()}%|">10%</span>
+        <strong th:text="|${#numbers.formatInteger(ebook.salePrice(), 1, 'COMMA')}원|">9,000원</strong>
+    </span>
+    <span th:unless="${ebook.onSale()}" class="badge">판매 중지</span>
+</li>
+</body>
+</html>

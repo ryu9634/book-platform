@@ -92,7 +92,8 @@ AVAILABLE 권 있음        → [대출하기]
 | 메서드 | URL | 권한 | 설명 |
 |---|---|---|---|
 | POST | `/api/v1/auth/login` | 전체 | 토큰 발급 |
-| POST | `/api/v1/auth/refresh` | 전체 | 토큰 재발급 |
+| POST | `/api/v1/auth/refresh` | 전체 | 토큰 재발급. 쓴 Refresh Token은 폐기하고 새로 발급 |
+| POST | `/api/v1/auth/logout` | 전체 | Refresh Token 폐기 |
 | POST | `/api/v1/members` | 전체 | 회원가입 |
 | GET | `/api/v1/members/me` | USER | 내 정보 |
 | GET | `/api/v1/books` | 전체 | 검색, 페이징 |

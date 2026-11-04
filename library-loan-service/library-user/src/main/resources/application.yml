@@ -8,3 +8,10 @@ spring:
 
 server:
   port: 8081
+
+library:
+  jwt:
+    # HS256 서명 키. 32바이트 이상. 값은 환경 변수(.env의 LIBRARY_JWT_SECRET)로만 넣습니다.
+    secret: ${LIBRARY_JWT_SECRET:}
+    access-token-ttl: 30m
+    refresh-token-ttl: 7d

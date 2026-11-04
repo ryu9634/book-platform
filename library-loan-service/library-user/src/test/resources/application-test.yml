@@ -1,3 +1,7 @@
 spring:
   datasource:
     password: unused  # Testcontainers가 접속 정보를 덮어씁니다.
+
+library:
+  jwt:
+    secret: ${random.uuid}${random.uuid}  # 테스트마다 무작위 키

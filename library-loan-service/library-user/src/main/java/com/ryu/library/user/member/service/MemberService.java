@@ -43,4 +43,10 @@ public class MemberService {
         log.info("member signed up. memberId={}", saved.getId());
         return MemberResponse.from(saved);
     }
+
+    public MemberResponse getMyInfo(Long memberId) {
+        return memberRepository.findById(memberId)
+                .map(MemberResponse::from)
+                .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
+    }
 }

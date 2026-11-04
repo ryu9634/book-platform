@@ -36,6 +36,23 @@
         </th:block>
     </div>
     <p class="description" th:if="${ebook.description()}" th:text="${ebook.description()}">소개</p>
+
+    <h2 th:text="|리뷰 ${reviewSummary.count()}개 · 평균 ★ ${reviewSummary.averageText()}|">리뷰</h2>
+    <a th:if="${canWriteReview}" class="button secondary" th:href="@{/ebooks/{id}/reviews/new(id=${ebook.id()})}">리뷰 쓰기</a>
+    <p th:if="${#lists.isEmpty(reviews)}" class="muted">아직 리뷰가 없습니다.</p>
+    <ul class="reviews">
+        <li th:each="r : ${reviews}">
+            <strong th:text="${'★'.repeat(r.rating())}">★★★★★</strong>
+            <span class="muted" th:text="|${r.memberName()} · ${#temporals.format(r.createdAt(), 'yyyy-MM-dd')}|">작성자</span>
+            <p th:text="${r.content()}">내용</p>
+            <th:block th:if="${loginMemberId != null and loginMemberId == r.memberId()}">
+                <a th:href="@{/reviews/{id}/edit(id=${r.reviewId()})}">수정</a>
+                <form th:action="@{/reviews/{id}/delete(id=${r.reviewId()})}" method="post" class="inline">
+                    <button type="submit" class="link">삭제</button>
+                </form>
+            </th:block>
+        </li>
+    </ul>
     <a th:href="@{/ebooks}">목록으로</a>
 </section>
 </body>

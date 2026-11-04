@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/default}">
+<head>
+    <title th:text="${reviewId} ? '리뷰 수정' : '리뷰 쓰기'">리뷰 쓰기</title>
+</head>
+<body>
+<section layout:fragment="content" class="narrow">
+    <h1 th:text="${reviewId} ? '리뷰 수정' : '리뷰 쓰기'">리뷰 쓰기</h1>
+    <p th:text="${ebook.title()}">전자책 제목</p>
+    <form th:action="${reviewId} ? @{/reviews/{id}/edit(id=${reviewId})} : @{/ebooks/{id}/reviews(id=${ebook.id()})}"
+          th:object="${reviewForm}" method="post" class="form">
+        <p th:if="${#fields.hasGlobalErrors()}" class="alert error" th:each="err : ${#fields.globalErrors()}" th:text="${err}">오류</p>
+        <label for="rating">별점</label>
+        <select th:field="*{rating}">
+            <option value="">선택</option>
+            <option th:each="n : ${#numbers.sequence(5, 1, -1)}" th:value="${n}" th:text="${'★'.repeat(n)}">★★★★★</option>
+        </select>
+        <p class="field-error" th:errors="*{rating}"></p>
+        <label for="content">내용</label>
+        <textarea th:field="*{content}" rows="6"></textarea>
+        <p class="field-error" th:errors="*{content}"></p>
+        <button type="submit" class="button" th:text="${reviewId} ? '수정' : '등록'">등록</button>
+    </form>
+</section>
+</body>
+</html>

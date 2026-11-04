@@ -23,6 +23,8 @@ public enum ErrorCode {
     DUPLICATE_LOGIN_ID(HttpStatus.CONFLICT, "M001", "이미 사용 중인 아이디입니다."),
     DUPLICATE_EMAIL(HttpStatus.CONFLICT, "M002", "이미 가입된 이메일입니다."),
     MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "M003", "회원을 찾을 수 없습니다."),
+    MEMBER_SUSPENDED(HttpStatus.FORBIDDEN, "M004", "연체로 대출이 정지된 상태입니다. (%s까지)"),
+    MEMBER_WITHDRAWN(HttpStatus.FORBIDDEN, "M005", "탈퇴한 회원입니다."),
 
     // 인증 (A)
     INVALID_CREDENTIALS(HttpStatus.UNAUTHORIZED, "A001", "아이디 또는 비밀번호가 올바르지 않습니다."),
@@ -37,7 +39,14 @@ public enum ErrorCode {
     CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, "B005", "분류를 찾을 수 없습니다."),
     COPY_NOT_FOUND(HttpStatus.NOT_FOUND, "B007", "소장 자료를 찾을 수 없습니다."),
     COPY_NOT_AVAILABLE(HttpStatus.CONFLICT, "B008", "대출할 수 없는 자료입니다. 이미 대출 중이거나 예약된 자료입니다."),
-    COPY_STATUS_CHANGE_NOT_ALLOWED(HttpStatus.CONFLICT, "B009", "현재 상태에서는 바꿀 수 없습니다.");
+    COPY_STATUS_CHANGE_NOT_ALLOWED(HttpStatus.CONFLICT, "B009", "현재 상태에서는 바꿀 수 없습니다."),
+
+    // 대출 (L)
+    LOAN_LIMIT_EXCEEDED(HttpStatus.BAD_REQUEST, "L001", "최대 대출 권수(%s권)를 넘을 수 없습니다."),
+    HAS_OVERDUE_LOAN(HttpStatus.BAD_REQUEST, "L002", "연체 중인 도서가 있어 대출할 수 없습니다. 먼저 반납해 주세요."),
+    ALREADY_LOANED_BOOK(HttpStatus.CONFLICT, "L003", "이미 대출 중인 도서입니다."),
+    LOAN_NOT_FOUND(HttpStatus.NOT_FOUND, "L004", "대출 기록을 찾을 수 없습니다."),
+    NO_AVAILABLE_COPY(HttpStatus.CONFLICT, "L005", "지금 대출할 수 있는 권이 없습니다. 예약해 주세요.");
 
     // 도메인 에러 코드는 기능을 만들 때 도메인별 접두사로 추가합니다. (A 인증, M 회원, B 도서, L 대출, R 예약)
 

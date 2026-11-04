@@ -23,3 +23,12 @@ spring:
   flyway:
     enabled: true
     locations: classpath:db/migration
+
+# 대출·예약 정책. 코드에 숫자를 두지 않고 여기서만 바꿉니다.
+library:
+  policy:
+    max-loan-count: 5
+    loan-days: 14
+    extend-days: 7
+    max-extend-count: 1
+    reservation-hold-days: 3

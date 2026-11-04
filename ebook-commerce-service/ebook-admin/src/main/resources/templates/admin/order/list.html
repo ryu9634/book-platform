@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/default}">
+<head>
+    <title>주문 관리</title>
+</head>
+<body>
+<section layout:fragment="content">
+    <h1>주문 관리</h1>
+    <form th:action="@{/admin/orders}" method="get" class="search">
+        <select name="status">
+            <option value="">전체 상태</option>
+            <option th:each="s : ${ {'PENDING','PAID','CANCELED','REFUNDED'} }" th:value="${s}" th:text="${s}"
+                    th:selected="${status != null and status.name() == s}">PAID</option>
+        </select>
+        <input type="date" name="from" th:value="${from}">
+        <input type="date" name="to" th:value="${to}">
+        <input type="text" name="keyword" th:value="${keyword}" placeholder="주문번호, 회원 아이디·이름">
+        <button type="submit">검색</button>
+    </form>
+    <p class="hint">기간을 비우면 최근 30일입니다.</p>
+    <p th:if="${page.totalElements == 0}">주문이 없습니다.</p>
+    <table th:unless="${page.totalElements == 0}" class="table">
+        <thead><tr><th>주문번호</th><th>회원</th><th>상태</th><th>금액</th><th>주문일</th><th>결제일</th></tr></thead>
+        <tbody>
+        <tr th:each="o : ${page.content}">
+            <td><a th:href="@{/admin/orders/{no}(no=${o.orderNo()})}" th:text="${o.orderNo()}">20261104-000001</a></td>
+            <td th:text="|${o.memberName()} (${o.loginId()})|">회원</td>
+            <td th:text="${o.status()}">PAID</td>
+            <td th:text="|${#numbers.formatInteger(o.paidAmount(), 1, 'COMMA')}원|">0원</td>
+            <td th:text="${#temporals.format(o.orderedAt(), 'yyyy-MM-dd HH:mm')}">2026-11-04</td>
+            <td th:text="${o.paidAt() != null} ? ${#temporals.format(o.paidAt(), 'yyyy-MM-dd HH:mm')} : '-'">-</td>
+        </tr>
+        </tbody>
+    </table>
+    <nav class="pager" th:if="${page.totalPages > 1}">
+        <a th:if="${page.hasPrevious()}" th:href="@{/admin/orders(page=${page.number - 1}, status=${status}, from=${from}, to=${to}, keyword=${keyword})}">이전</a>
+        <span th:text="|${page.number + 1} / ${page.totalPages}|">1 / 1</span>
+        <a th:if="${page.hasNext()}" th:href="@{/admin/orders(page=${page.number + 1}, status=${status}, from=${from}, to=${to}, keyword=${keyword})}">다음</a>
+    </nav>
+</section>
+</body>
+</html>

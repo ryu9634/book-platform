@@ -5,6 +5,9 @@
     <a class="logo" th:href="@{/admin}">ebook 관리자</a>
     <nav th:if="${loginName != null}">
         <a th:href="@{/admin/ebooks}">전자책</a>
+        <a th:href="@{/admin/orders}">주문</a>
+        <a th:href="@{/admin/members}">회원</a>
+        <a th:href="@{/admin/sales}">매출</a>
         <span th:text="|${loginName}님|">관리자님</span>
         <form th:action="@{/admin/logout}" method="post" class="inline">
             <button type="submit" class="link">로그아웃</button>

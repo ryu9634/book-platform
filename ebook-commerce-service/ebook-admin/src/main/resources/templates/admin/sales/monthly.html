@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/default}">
+<head>
+    <title>매출 요약</title>
+</head>
+<body>
+<section layout:fragment="content">
+    <h1>매출 요약</h1>
+    <form th:action="@{/admin/sales}" method="get" class="search">
+        <input type="month" name="month" th:value="${sales.month()}">
+        <button type="submit">조회</button>
+    </form>
+    <p class="hint">결제 시각 기준, 환불한 항목은 뺀 금액입니다.</p>
+    <ul class="stats">
+        <li><strong th:text="|${#numbers.formatInteger(sales.total().amount(), 1, 'COMMA')}원|">0원</strong><span th:text="|${sales.month()} 매출|">매출</span></li>
+        <li><strong th:text="${sales.total().orderCount()}">0</strong><span>결제 주문</span></li>
+        <li><strong th:text="${sales.total().itemCount()}">0</strong><span>판매 권수</span></li>
+    </ul>
+    <h2>분류별</h2>
+    <p th:if="${#lists.isEmpty(sales.byCategory())}">매출이 없습니다.</p>
+    <table th:unless="${#lists.isEmpty(sales.byCategory())}" class="table">
+        <thead><tr><th>분류</th><th>매출</th><th>판매 권수</th></tr></thead>
+        <tbody>
+        <tr th:each="row : ${sales.byCategory()}">
+            <td th:text="${row.name()}">분류</td>
+            <td th:text="|${#numbers.formatInteger(row.amount(), 1, 'COMMA')}원|">0원</td>
+            <td th:text="${row.count()}">0</td>
+        </tr>
+        </tbody>
+    </table>
+    <h2>상위 전자책</h2>
+    <table th:unless="${#lists.isEmpty(sales.topEbooks())}" class="table">
+        <thead><tr><th>순위</th><th>전자책</th><th>판매 권수</th><th>매출</th></tr></thead>
+        <tbody>
+        <tr th:each="row, stat : ${sales.topEbooks()}">
+            <td th:text="${stat.count}">1</td>
+            <td th:text="${row.name()}">제목</td>
+            <td th:text="${row.count()}">0</td>
+            <td th:text="|${#numbers.formatInteger(row.amount(), 1, 'COMMA')}원|">0원</td>
+        </tr>
+        </tbody>
+    </table>
+</section>
+</body>
+</html>

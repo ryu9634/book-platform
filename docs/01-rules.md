@@ -68,7 +68,8 @@
 | Security 설정, 화면용 예외 처리, Thymeleaf 템플릿 | 각 앱 |
 
 - 처음에는 한 앱에서만 쓰는 로직을 그 앱에 둡니다. 다른 앱에서도 필요해지면 그때 core로 옮깁니다. 복사해서 두 군데에 두지 않습니다.
-- core에 Controller나 화면 관련 코드를 두지 않습니다. 예외는 두 앱 공통 API 예외 처리(`GlobalExceptionHandler`) 하나뿐입니다.
+- core에 Controller나 화면 관련 코드를 두지 않습니다. 예외는 두 앱이 똑같이 쓰는 웹 공통 처리뿐입니다: API 예외 처리(`GlobalExceptionHandler`), API 인증 실패 JSON 응답(`ApiSecurityErrorHandler`), 비밀번호 암호화 설정(`PasswordEncoderConfig`).
+  core는 이를 위해 Spring MVC와 Security를 `compileOnly`로만 참조하고, 실제 라이브러리는 앱이 제공합니다.
 - 메인 클래스는 두 앱 모두 `com.ryu.{서비스}` 패키지에 둡니다. 그래야 core의 엔티티와 설정까지 스캔됩니다.
 
 ### 2-2. 계층별 책임

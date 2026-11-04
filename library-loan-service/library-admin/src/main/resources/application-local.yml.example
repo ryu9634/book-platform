@@ -7,6 +7,12 @@ spring:
       hibernate:
         format_sql: true
 
+# 첫 관리자 계정. 루트 .env의 LIBRARY_ADMIN_LOGIN_ID, LIBRARY_ADMIN_PASSWORD와 같은 값을 직접 넣습니다.
+library:
+  admin:
+    initial-login-id:
+    initial-password:
+
 logging:
   level:
     org.hibernate.SQL: debug

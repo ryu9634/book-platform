@@ -17,4 +17,10 @@ public final class MemberFixture {
     public static Member activeMember(String loginId, String email) {
         return Member.create(loginId, ENCODED_PASSWORD, "홍길동", email, "010-0000-0000");
     }
+
+    public static Member withdrawnMember() {
+        Member member = activeMember();
+        member.withdraw();
+        return member;
+    }
 }

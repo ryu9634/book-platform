@@ -117,4 +117,6 @@ DB 설계, 엔티티, 계층, 예외, 트랜잭션, 테스트, Git 등 두 서�
 구현 순서: 세션 Form Login 먼저 → API용 JWT 추가 → FilterChain 분리 커밋.
 
 - user 앱과 admin 앱은 세션을 공유하지 않습니다. 관리자는 admin 앱에서 따로 로그인합니다.
-- 계정은 같은 MEMBER 테이블을 쓰고, admin 앱은 ROLE이 ADMIN인 회원만 로그인을 허용합니다.
+- 계정은 같은 MEMBER 테이블을 쓰고, admin 앱은 ROLE이 ADMIN인 회원만 로그인을 허용합니다. 일반 회원 아이디는 "없는 계정"과 똑같이 거부합니다.
+- 관리자 화면 로그인 URL은 `/admin/login`, 회원 화면은 `/login`입니다. 로그인 성공 처리와 실패 처리는 Spring Security 필터가 맡습니다.
+- API 인증 실패는 로그인 화면으로 보내지 않고 `ApiResponse` JSON(401 `C006`, 403 `C007`)으로 응답합니다.

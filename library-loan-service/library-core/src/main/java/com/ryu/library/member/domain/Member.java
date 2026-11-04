@@ -74,4 +74,13 @@ public class Member extends BaseTimeEntity {
     public boolean isAdmin() {
         return role == MemberRole.ADMIN;
     }
+
+    // 탈퇴해도 대출 이력 등 다른 데이터가 이 회원을 참조하므로 행은 지우지 않고 상태만 바꿉니다.
+    public void withdraw() {
+        this.status = MemberStatus.WITHDRAWN;
+    }
+
+    public boolean isWithdrawn() {
+        return status == MemberStatus.WITHDRAWN;
+    }
 }

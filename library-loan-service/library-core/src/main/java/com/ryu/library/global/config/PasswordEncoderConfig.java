@@ -1,4 +1,4 @@
-package com.ryu.library.user.global.config;
+package com.ryu.library.global.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

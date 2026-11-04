@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/default}">
+<head>
+    <title>홈</title>
+</head>
+<body>
+<section layout:fragment="content">
+    <h1>도서관에 오신 것을 환영합니다</h1>
+    <p th:if="${loginName != null}" th:text="|${loginName}님, 로그인되었습니다.|">로그인되었습니다.</p>
+    <p th:unless="${loginName != null}">도서를 대출하려면 <a th:href="@{/login}">로그인</a>해 주세요.</p>
+</section>
+</body>
+</html>

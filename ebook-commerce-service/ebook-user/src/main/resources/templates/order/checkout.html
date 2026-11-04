@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/default}">
+<head>
+    <title>주문서</title>
+</head>
+<body>
+<section layout:fragment="content" class="medium">
+    <h1>주문서</h1>
+    <form th:action="@{/orders}" method="post" class="form">
+        <table class="table">
+            <thead><tr><th>전자책</th><th>정가</th><th>판매가</th></tr></thead>
+            <tbody>
+            <tr th:each="line : ${checkout.lines()}">
+                <td>
+                    <span th:text="${line.title()}">제목</span>
+                    <input type="hidden" name="ebookIds" th:value="${line.ebookId()}">
+                </td>
+                <td class="strike" th:text="|${#numbers.formatInteger(line.price(), 1, 'COMMA')}원|">10,000원</td>
+                <td th:text="|${#numbers.formatInteger(line.salePrice(), 1, 'COMMA')}원|">9,000원</td>
+            </tr>
+            </tbody>
+        </table>
+        <label for="method">결제 수단</label>
+        <select id="method" name="method">
+            <option th:each="m : ${methods}" th:value="${m}" th:text="${m.name() == 'MOCK'} ? '테스트 결제(Mock PG)' : ${m}" th:selected="${m.name() == 'MOCK'}">MOCK</option>
+        </select>
+        <p class="total" th:text="|결제 금액 ${#numbers.formatInteger(checkout.totalAmount(), 1, 'COMMA')}원|">결제 금액</p>
+        <button type="submit" class="button">주문하고 결제하기</button>
+    </form>
+</section>
+</body>
+</html>

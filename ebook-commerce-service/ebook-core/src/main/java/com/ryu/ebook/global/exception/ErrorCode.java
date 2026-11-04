@@ -44,7 +44,17 @@ public enum ErrorCode {
     CART_ITEM_NOT_FOUND(HttpStatus.NOT_FOUND, "CT002", "장바구니 항목을 찾을 수 없습니다."),
 
     // 서재 (S)
-    ALREADY_OWNED(HttpStatus.CONFLICT, "S001", "이미 내 서재에 있는 전자책입니다.");
+    ALREADY_OWNED(HttpStatus.CONFLICT, "S001", "이미 내 서재에 있는 전자책입니다."),
+
+    // 주문 (O)
+    ORDER_NOT_FOUND(HttpStatus.NOT_FOUND, "O001", "주문을 찾을 수 없습니다."),
+    ORDER_NOT_PENDING(HttpStatus.CONFLICT, "O002", "결제 대기 중인 주문이 아닙니다. 이미 결제했거나 취소된 주문입니다."),
+    EMPTY_ORDER(HttpStatus.BAD_REQUEST, "O003", "주문할 전자책을 골라 주세요."),
+    REFUND_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "O004", "%s"),
+
+    // 결제 (P)
+    PAYMENT_AMOUNT_MISMATCH(HttpStatus.BAD_REQUEST, "P001", "결제 금액이 주문 금액과 다릅니다."),
+    PAYMENT_FAILED(HttpStatus.PAYMENT_REQUIRED, "P002", "결제에 실패했습니다. (%s)");
 
     // 도메인 에러 코드는 기능을 만들 때 도메인별 접두사로 추가합니다. (E 전자책, CT 장바구니, O 주문, P 결제, S 서재, RV 리뷰)
 

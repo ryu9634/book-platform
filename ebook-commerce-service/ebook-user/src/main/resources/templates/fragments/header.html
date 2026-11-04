@@ -7,6 +7,8 @@
         <a th:href="@{/ebooks}">전자책</a>
         <th:block th:if="${loginName != null}">
             <a th:href="@{/cart}">장바구니</a>
+            <a th:href="@{/bookshelf}">내 서재</a>
+            <a th:href="@{/orders}">주문 내역</a>
             <a th:href="@{/members/me}" th:text="|${loginName}님|">회원님</a>
             <form th:action="@{/logout}" method="post" class="inline">
                 <button type="submit" class="link">로그아웃</button>

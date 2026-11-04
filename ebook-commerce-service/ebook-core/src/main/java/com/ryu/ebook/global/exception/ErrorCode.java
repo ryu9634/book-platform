@@ -36,7 +36,15 @@ public enum ErrorCode {
     INVALID_PRICE(HttpStatus.BAD_REQUEST, "E003", "판매가는 0원 이상, 정가 이하여야 합니다."),
     INVALID_FILE(HttpStatus.BAD_REQUEST, "E004", "%s"),
     CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, "E005", "분류를 찾을 수 없습니다."),
-    CATEGORY_DEPTH_EXCEEDED(HttpStatus.BAD_REQUEST, "E006", "분류는 2단계까지만 만들 수 있습니다.");
+    CATEGORY_DEPTH_EXCEEDED(HttpStatus.BAD_REQUEST, "E006", "분류는 2단계까지만 만들 수 있습니다."),
+    EBOOK_NOT_ON_SALE(HttpStatus.BAD_REQUEST, "E007", "판매 중이 아닌 전자책입니다."),
+
+    // 장바구니 (CT)
+    ALREADY_IN_CART(HttpStatus.CONFLICT, "CT001", "이미 장바구니에 있는 전자책입니다."),
+    CART_ITEM_NOT_FOUND(HttpStatus.NOT_FOUND, "CT002", "장바구니 항목을 찾을 수 없습니다."),
+
+    // 서재 (S)
+    ALREADY_OWNED(HttpStatus.CONFLICT, "S001", "이미 내 서재에 있는 전자책입니다.");
 
     // 도메인 에러 코드는 기능을 만들 때 도메인별 접두사로 추가합니다. (E 전자책, CT 장바구니, O 주문, P 결제, S 서재, RV 리뷰)
 

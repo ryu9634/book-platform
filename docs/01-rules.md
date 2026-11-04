@@ -36,7 +36,8 @@
 - 모든 테이블에 `CREATED_AT`, `UPDATED_AT TIMESTAMP NOT NULL` (BaseTimeEntity + JPA Auditing).
 - 문자열은 `VARCHAR2(n CHAR)`로 선언해 한글 바이트 수 문제를 피합니다.
 - 상태 값은 `VARCHAR2(20)` + CHECK 제약, JPA에서는 `@Enumerated(EnumType.STRING)`.
-- 불리언은 `NUMBER(1)` (0/1), JPA에서는 `boolean`.
+- 불리언은 `NUMBER(1)` (0/1), JPA에서는 `boolean` + `@Convert(converter = NumericBooleanConverter.class)`.
+  Hibernate 7은 Oracle 23에서 `boolean`을 Oracle의 새 `BOOLEAN` 타입으로 기대하므로, 변환기를 붙이지 않으면 스키마 검증(`validate`)이 실패합니다.
 - 금액은 `NUMBER(12)` 정수 원 단위.
 
 ### 1-4. 스키마 관리 (Flyway)

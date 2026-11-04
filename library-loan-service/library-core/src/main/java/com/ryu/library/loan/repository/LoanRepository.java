@@ -3,6 +3,7 @@ package com.ryu.library.loan.repository;
 import com.ryu.library.loan.domain.Loan;
 import com.ryu.library.loan.domain.LoanStatus;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 import org.springframework.data.domain.Page;
@@ -16,6 +17,61 @@ public interface LoanRepository extends JpaRepository<Loan, Long> {
     long countByMemberIdAndStatusIn(Long memberId, Collection<LoanStatus> statuses);
 
     List<Loan> findByStatusAndDueDateLessThan(LoanStatus status, LocalDate date);
+
+    long countByLoanedAtGreaterThanEqual(LocalDateTime from);
+
+    long countByReturnedAtGreaterThanEqual(LocalDateTime from);
+
+    @Query("""
+            select count(l) from Loan l
+            where l.status = com.ryu.library.loan.domain.LoanStatus.OVERDUE
+               or (l.status = com.ryu.library.loan.domain.LoanStatus.ON_LOAN and l.dueDate < :today)
+            """)
+    long countOverdue(@Param("today") LocalDate today);
+
+    // 관리자 대출 현황: 상태(선택), 검색어(회원 아이디·이름, 도서 제목, 바코드)로 거릅니다.
+    @Query(value = """
+            select new com.ryu.library.loan.repository.AdminLoanView(l.id, m.id, m.loginId, m.name, b.id, b.title,
+                   c.barcode, l.loanedAt, l.dueDate, l.returnedAt, l.status)
+            from Loan l join Member m on m.id = l.memberId join BookCopy c on c.id = l.bookCopyId join c.book b
+            where l.status in :statuses
+              and (:keyword is null or m.loginId like concat('%', :keyword, '%') or m.name like concat('%', :keyword, '%')
+                   or b.title like concat('%', :keyword, '%') or c.barcode = :keyword)
+            """,
+            countQuery = """
+            select count(l)
+            from Loan l join Member m on m.id = l.memberId join BookCopy c on c.id = l.bookCopyId join c.book b
+            where l.status in :statuses
+              and (:keyword is null or m.loginId like concat('%', :keyword, '%') or m.name like concat('%', :keyword, '%')
+                   or b.title like concat('%', :keyword, '%') or c.barcode = :keyword)
+            """)
+    Page<AdminLoanView> searchForAdmin(@Param("statuses") Collection<LoanStatus> statuses,
+            @Param("keyword") String keyword, Pageable pageable);
+
+    @Query("""
+            select new com.ryu.library.loan.repository.AdminLoanView(l.id, m.id, m.loginId, m.name, b.id, b.title,
+                   c.barcode, l.loanedAt, l.dueDate, l.returnedAt, l.status)
+            from Loan l join Member m on m.id = l.memberId join BookCopy c on c.id = l.bookCopyId join c.book b
+            where l.status = com.ryu.library.loan.domain.LoanStatus.OVERDUE
+               or (l.status = com.ryu.library.loan.domain.LoanStatus.ON_LOAN and l.dueDate < :today)
+            order by l.dueDate asc
+            """)
+    List<AdminLoanView> findOverdueForAdmin(@Param("today") LocalDate today);
+
+    // 회원 목록에서 회원마다 따로 세지 않도록 대출 중 권수를 한 번에 셉니다.
+    @Query("""
+            select l.memberId as memberId, count(l) as count from Loan l
+            where l.memberId in :memberIds
+              and l.status in (com.ryu.library.loan.domain.LoanStatus.ON_LOAN, com.ryu.library.loan.domain.LoanStatus.OVERDUE)
+            group by l.memberId
+            """)
+    List<MemberLoanCount> countActiveByMemberIds(@Param("memberIds") Collection<Long> memberIds);
+
+    interface MemberLoanCount {
+        Long getMemberId();
+
+        long getCount();
+    }
 
     // 스케줄러가 OVERDUE로 바꾸기 전에도 반납 예정일이 지난 대출은 연체로 봅니다.
     @Query("""

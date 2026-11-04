@@ -64,4 +64,28 @@ class LoanRepositoryTest {
         assertThat(loanRepository.findHistoryByMember(1L, PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "loanedAt")))
                 .getTotalElements()).isEqualTo(1);
     }
+
+    @Autowired
+    com.ryu.library.member.repository.MemberRepository memberRepository;
+
+    @Test
+    @DisplayName("관리자 대출 현황은 회원·도서를 조인해 검색어와 상태로 거르고, 연체와 회원별 대출 수를 한 번에 센다")
+    void 관리자조회쿼리() {
+        // given
+        var member = memberRepository.save(com.ryu.library.member.MemberFixture.activeMember("adminq01", "adminq01@example.com"));
+        Book book = bookRepository.save(BookFixture.book("9780000000052", "토비의 스프링"));
+        BookCopy copy = bookCopyRepository.save(BookCopy.create(book, "LIB-ADM-001"));
+        loanRepository.saveAndFlush(Loan.start(member.getId(), copy.getId(), LOANED, 14));
+        var active = EnumSet.of(LoanStatus.ON_LOAN, LoanStatus.OVERDUE);
+
+        // when, then
+        assertThat(loanRepository.searchForAdmin(active, "토비", PageRequest.of(0, 10)).getContent())
+                .singleElement().satisfies(view -> assertThat(view.loginId()).isEqualTo("adminq01"));
+        assertThat(loanRepository.searchForAdmin(active, "LIB-ADM-001", PageRequest.of(0, 10)).getTotalElements()).isEqualTo(1);
+        assertThat(loanRepository.searchForAdmin(EnumSet.of(LoanStatus.RETURNED), null, PageRequest.of(0, 10)).getTotalElements()).isZero();
+        assertThat(loanRepository.findOverdueForAdmin(LocalDate.of(2026, 11, 16))).hasSize(1);
+        assertThat(loanRepository.countOverdue(LocalDate.of(2026, 11, 16))).isEqualTo(1);
+        assertThat(loanRepository.countActiveByMemberIds(List.of(member.getId())))
+                .singleElement().satisfies(row -> assertThat(row.getCount()).isEqualTo(1));
+    }
 }

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/default}">
+<head>
+    <title>연체 현황</title>
+</head>
+<body>
+<section layout:fragment="content">
+    <p th:if="${message}" class="alert" th:text="${message}">처리 결과</p>
+    <p th:if="${errorMessage}" class="alert error" th:text="${errorMessage}">오류</p>
+    <h1>연체 현황</h1>
+    <p th:if="${#lists.isEmpty(loans)}">연체된 대출이 없습니다.</p>
+    <table th:unless="${#lists.isEmpty(loans)}" class="table">
+        <thead><tr><th>회원</th><th>도서</th><th>바코드</th><th>반납 예정일</th><th>연체 일수</th><th></th></tr></thead>
+        <tbody>
+        <tr th:each="loan : ${loans}">
+            <td th:text="|${loan.memberName()} (${loan.loginId()})|">회원</td>
+            <td th:text="${loan.title()}">제목</td>
+            <td th:text="${loan.barcode()}">LIB-000001-001</td>
+            <td th:text="${loan.dueDate()}">2026-11-01</td>
+            <td th:text="|${loan.overdueDays(today)}일|">3일</td>
+            <td>
+                <form th:action="@{/admin/loans/{id}/return(id=${loan.loanId()})}" method="post" class="inline">
+                    <input type="hidden" name="back" value="/admin/loans/overdue">
+                    <button type="submit" class="link">데스크 반납</button>
+                </form>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</section>
+</body>
+</html>

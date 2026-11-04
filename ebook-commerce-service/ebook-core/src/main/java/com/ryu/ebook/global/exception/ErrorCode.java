@@ -28,7 +28,15 @@ public enum ErrorCode {
 
     // 인증 (A)
     INVALID_CREDENTIALS(HttpStatus.UNAUTHORIZED, "A001", "아이디 또는 비밀번호가 올바르지 않습니다."),
-    INVALID_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, "A002", "로그인이 만료되었습니다. 다시 로그인해 주세요.");
+    INVALID_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, "A002", "로그인이 만료되었습니다. 다시 로그인해 주세요."),
+
+    // 전자책 (E)
+    EBOOK_NOT_FOUND(HttpStatus.NOT_FOUND, "E001", "전자책을 찾을 수 없습니다."),
+    DUPLICATE_ISBN(HttpStatus.CONFLICT, "E002", "이미 등록된 ISBN입니다."),
+    INVALID_PRICE(HttpStatus.BAD_REQUEST, "E003", "판매가는 0원 이상, 정가 이하여야 합니다."),
+    INVALID_FILE(HttpStatus.BAD_REQUEST, "E004", "%s"),
+    CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, "E005", "분류를 찾을 수 없습니다."),
+    CATEGORY_DEPTH_EXCEEDED(HttpStatus.BAD_REQUEST, "E006", "분류는 2단계까지만 만들 수 있습니다.");
 
     // 도메인 에러 코드는 기능을 만들 때 도메인별 접두사로 추가합니다. (E 전자책, CT 장바구니, O 주문, P 결제, S 서재, RV 리뷰)
 

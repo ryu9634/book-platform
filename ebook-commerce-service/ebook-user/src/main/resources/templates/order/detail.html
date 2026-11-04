@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/default}">
+<head>
+    <title>주문 상세</title>
+</head>
+<body>
+<section layout:fragment="content" class="medium">
+    <p th:if="${message}" class="alert" th:text="${message}">처리 결과</p>
+    <p th:if="${errorMessage}" class="alert error" th:text="${errorMessage}">오류</p>
+    <h1 th:text="|주문 ${order.orderNo()}|">주문 상세</h1>
+    <dl class="detail">
+        <dt>상태</dt><dd th:text="${order.statusLabel()}">결제 완료</dd>
+        <dt>주문일</dt><dd th:text="${#temporals.format(order.orderedAt(), 'yyyy-MM-dd HH:mm')}">2026-11-04</dd>
+        <dt>결제 금액</dt><dd th:text="|${#numbers.formatInteger(order.paidAmount(), 1, 'COMMA')}원|">9,000원</dd>
+        <dt>결제</dt><dd th:text="|${order.paymentMethod()} / ${order.paymentStatus()}|">MOCK / APPROVED</dd>
+        <th:block th:if="${order.failReason()}"><dt>실패 사유</dt><dd th:text="${order.failReason()}">사유</dd></th:block>
+    </dl>
+    <table class="table">
+        <thead><tr><th>전자책</th><th>금액</th><th>상태</th><th></th></tr></thead>
+        <tbody>
+        <tr th:each="item : ${order.items()}">
+            <td><a th:href="@{/ebooks/{id}(id=${item.ebookId()})}" th:text="${item.title()}">제목</a></td>
+            <td th:text="|${#numbers.formatInteger(item.price(), 1, 'COMMA')}원|">9,000원</td>
+            <td th:text="${item.status().name() == 'REFUNDED'} ? '환불 완료' : '-'">-</td>
+            <td class="row-actions" th:attr="data-item-id=${item.orderItemId()}"></td>
+        </tr>
+        </tbody>
+    </table>
+    <div class="actions" th:if="${order.pending()}">
+        <a class="button" th:href="@{/orders/{no}/payment(no=${order.orderNo()})}">결제하기</a>
+        <form th:action="@{/orders/{no}/cancel(no=${order.orderNo()})}" method="post" class="inline">
+            <button type="submit" class="link">주문 취소</button>
+        </form>
+    </div>
+    <a th:href="@{/orders}">주문 내역으로</a>
+</section>
+</body>
+</html>

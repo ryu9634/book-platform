@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/default}">
+<head>
+    <title>주문 내역</title>
+</head>
+<body>
+<section layout:fragment="content">
+    <h1>주문 내역</h1>
+    <p th:if="${page.totalElements == 0}">주문 내역이 없습니다.</p>
+    <table th:unless="${page.totalElements == 0}" class="table">
+        <thead><tr><th>주문번호</th><th>주문일</th><th>전자책</th><th>금액</th><th>상태</th></tr></thead>
+        <tbody>
+        <tr th:each="o : ${page.content}">
+            <td><a th:href="@{/orders/{no}(no=${o.orderNo()})}" th:text="${o.orderNo()}">20261104-000001</a></td>
+            <td th:text="${#temporals.format(o.orderedAt(), 'yyyy-MM-dd HH:mm')}">2026-11-04</td>
+            <td th:text="${o.title()}">제목</td>
+            <td th:text="|${#numbers.formatInteger(o.paidAmount(), 1, 'COMMA')}원|">9,000원</td>
+            <td th:text="${o.statusLabel()}">결제 완료</td>
+        </tr>
+        </tbody>
+    </table>
+    <nav class="pager" th:if="${page.totalPages > 1}">
+        <a th:if="${page.hasPrevious()}" th:href="@{/orders(page=${page.number - 1})}">이전</a>
+        <span th:text="|${page.number + 1} / ${page.totalPages}|">1 / 1</span>
+        <a th:if="${page.hasNext()}" th:href="@{/orders(page=${page.number + 1})}">다음</a>
+    </nav>
+</section>
+</body>
+</html>

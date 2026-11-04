@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/default}">
+<head>
+    <title>결제</title>
+</head>
+<body>
+<section layout:fragment="content" class="narrow">
+    <p th:if="${errorMessage}" class="alert error" th:text="${errorMessage}">결제 실패</p>
+    <h1>결제 (Mock PG)</h1>
+    <dl class="detail">
+        <dt>주문번호</dt><dd th:text="${order.orderNo()}">20261104-000001</dd>
+        <dt>결제 금액</dt><dd th:text="|${#numbers.formatInteger(order.paidAmount(), 1, 'COMMA')}원|">9,000원</dd>
+    </dl>
+    <p class="hint">실제 결제는 일어나지 않습니다. 금액의 1원 자리가 7이면 항상 실패합니다.</p>
+    <div class="actions">
+        <form th:action="@{/orders/{no}/payment/approve(no=${order.orderNo()})}" method="post" class="inline">
+            <button type="submit" class="button">결제 승인</button>
+        </form>
+        <form th:action="@{/orders/{no}/payment/approve(no=${order.orderNo()})}" method="post" class="inline">
+            <input type="hidden" name="simulateFailure" value="true">
+            <button type="submit" class="button secondary">결제 실패 시뮬레이션</button>
+        </form>
+        <form th:action="@{/orders/{no}/cancel(no=${order.orderNo()})}" method="post" class="inline">
+            <button type="submit" class="link">주문 취소</button>
+        </form>
+    </div>
+</section>
+</body>
+</html>

@@ -42,14 +42,16 @@ public class BookForm {
 
     private Long categoryId;
 
+    // 국립중앙도서관은 발행 연도만 주므로 날짜 칸 옆에 참고로만 보여 줍니다. 저장하지 않습니다.
+    private Integer publishedYearHint;
+
     public static BookForm from(NlBookInfo info) {
         BookForm form = new BookForm();
         form.isbn = info.isbn();
         form.title = info.title();
         form.author = info.author();
         form.publisher = info.publisher();
-        form.publishedDate = info.publishedDate();
-        form.coverImageUrl = info.coverImageUrl();
+        form.publishedYearHint = info.publishedYear();
         form.description = info.description();
         return form;
     }

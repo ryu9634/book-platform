@@ -93,7 +93,7 @@ class BookAdminViewControllerTest {
 
         // when, then
         mockMvc.perform(post("/admin/books").with(admin()).with(csrf())
-                        .param("isbn", ISBN).param("title", "클린 코드").param("author", "로버트 C. 마틴"))
+                        .param("isbn", ISBN).param("title", "이펙티브 자바").param("author", "조슈아 블로크 지음"))
                 .andExpect(redirectedUrl("/admin/books/10"))
                 .andExpect(flash().attribute("message", "도서를 등록했습니다."));
     }
@@ -106,7 +106,7 @@ class BookAdminViewControllerTest {
 
         // when, then
         mockMvc.perform(post("/admin/books").with(admin()).with(csrf())
-                        .param("isbn", ISBN).param("title", "클린 코드").param("author", "로버트 C. 마틴"))
+                        .param("isbn", ISBN).param("title", "이펙티브 자바").param("author", "조슈아 블로크 지음"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("이미 등록된 ISBN입니다.")));
     }

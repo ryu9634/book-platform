@@ -37,6 +37,7 @@
 
         <label for="publishedDate">출판일</label>
         <input type="date" th:field="*{publishedDate}">
+        <p class="hint" th:if="*{publishedYearHint}" th:text="|국립중앙도서관 기준 발행연도: *{publishedYearHint}년|">발행연도</p>
 
         <label for="categoryId">분류</label>
         <select th:field="*{categoryId}">

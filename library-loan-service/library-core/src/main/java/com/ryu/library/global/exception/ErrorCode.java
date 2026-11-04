@@ -34,7 +34,10 @@ public enum ErrorCode {
     ISBN_NOT_FOUND_IN_NL(HttpStatus.NOT_FOUND, "B003", "국립중앙도서관에서 해당 ISBN의 도서를 찾을 수 없습니다."),
     NL_API_NOT_CONFIGURED(HttpStatus.SERVICE_UNAVAILABLE, "B004", "국립중앙도서관 API 인증키가 설정되지 않았습니다."),
     NL_API_INVALID_KEY(HttpStatus.SERVICE_UNAVAILABLE, "B006", "국립중앙도서관 API 인증키가 유효하지 않습니다. 공공데이터포털에서 키 상태를 확인해 주세요."),
-    CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, "B005", "분류를 찾을 수 없습니다.");
+    CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, "B005", "분류를 찾을 수 없습니다."),
+    COPY_NOT_FOUND(HttpStatus.NOT_FOUND, "B007", "소장 자료를 찾을 수 없습니다."),
+    COPY_NOT_AVAILABLE(HttpStatus.CONFLICT, "B008", "대출할 수 없는 자료입니다. 이미 대출 중이거나 예약된 자료입니다."),
+    COPY_STATUS_CHANGE_NOT_ALLOWED(HttpStatus.CONFLICT, "B009", "현재 상태에서는 바꿀 수 없습니다.");
 
     // 도메인 에러 코드는 기능을 만들 때 도메인별 접두사로 추가합니다. (A 인증, M 회원, B 도서, L 대출, R 예약)
 

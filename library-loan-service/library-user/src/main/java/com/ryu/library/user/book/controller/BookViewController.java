@@ -1,0 +1,35 @@
+package com.ryu.library.user.book.controller;
+
+import com.ryu.library.user.book.service.BookQueryService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
+
+@Controller
+@RequiredArgsConstructor
+public class BookViewController {
+
+    private final BookQueryService bookQueryService;
+
+    @GetMapping("/books")
+    public String list(@RequestParam(required = false) String keyword, @RequestParam(required = false) Long categoryId,
+            @PageableDefault(sort = "id", direction = Sort.Direction.DESC) Pageable pageable, Model model) {
+        model.addAttribute("page", bookQueryService.search(keyword, categoryId, pageable));
+        model.addAttribute("keyword", keyword);
+        model.addAttribute("categoryId", categoryId);
+        model.addAttribute("categories", bookQueryService.categoryOptions());
+        return "book/list";
+    }
+
+    @GetMapping("/books/{bookId}")
+    public String detail(@PathVariable Long bookId, Model model) {
+        model.addAttribute("book", bookQueryService.getBook(bookId));
+        return "book/detail";
+    }
+}

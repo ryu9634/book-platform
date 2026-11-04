@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<body>
+<li th:fragment="card(book)" class="card">
+    <a th:href="@{/books/{id}(id=${book.id})}">
+        <img th:if="${book.coverImageUrl}" th:src="${book.coverImageUrl}" alt="표지" class="cover-sm">
+        <div th:unless="${book.coverImageUrl}" class="cover-sm placeholder" th:text="${book.title}">표지</div>
+        <strong th:text="${book.title}">제목</strong>
+    </a>
+    <span class="muted" th:text="${book.author}">저자</span>
+    <span th:class="${book.available} ? 'badge ok' : 'badge'"
+          th:text="${book.available} ? |대출 가능 ${book.availableCount}/${book.holdingCount}| : (${book.holdingCount} > 0 ? '모두 대출 중' : '소장 자료 없음')">대출 가능</span>
+</li>
+</body>
+</html>

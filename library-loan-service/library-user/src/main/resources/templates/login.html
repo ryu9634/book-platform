@@ -9,6 +9,7 @@
     <h1>로그인</h1>
     <p th:if="${param.error}" class="alert error">아이디 또는 비밀번호가 올바르지 않습니다.</p>
     <p th:if="${param.logout}" class="alert">로그아웃되었습니다.</p>
+    <p th:if="${message}" class="alert" th:text="${message}">가입 완료</p>
     <form th:action="@{/login}" method="post" class="form">
         <label for="loginId">아이디</label>
         <input type="text" id="loginId" name="loginId" required autofocus>
@@ -16,6 +17,7 @@
         <input type="password" id="password" name="password" required>
         <button type="submit">로그인</button>
     </form>
+    <p>아직 회원이 아니신가요? <a th:href="@{/members/new}">회원가입</a></p>
 </section>
 </body>
 </html>

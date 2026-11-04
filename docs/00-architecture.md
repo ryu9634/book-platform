@@ -24,8 +24,15 @@
   MacBook에서 Oracle 컨테이너 2개는 메모리 부담이 크고, 실무에서도 "인스턴스는 공유하고 스키마로 격리"하는 경우가 많습니다.
 - 두 서비스(library, ebook)는 서로 호출하지 않습니다. 회원 테이블도 각자 가집니다.
   (나중에 "통합 로그인" 또는 "대출 이력 기반 ebook 추천"을 확장 과제로 붙일 수 있습니다.)
-- 로컬 개발 시에는 Oracle만 Docker로 띄우고 애플리케이션은 IDE에서 실행합니다.
-  Docker 이미지 빌드는 구현이 끝난 뒤 마지막 단계에서 붙입니다.
+- 로컬 개발 방식은 두 가지입니다.
+  - 기능 개발: Oracle만 Docker로 띄우고(`docker compose up -d`) 앱은 IDE나 `bootRun`으로 실행합니다.
+  - 전체 실행: `docker compose --profile app up -d --build`로 Oracle과 앱 4개를 모두 컨테이너로 띄웁니다.
+- 앱 이미지는 서비스마다 Dockerfile 하나로 만들고 `MODULE` 빌드 인자로 user, admin을 구분합니다.
+  - 멀티 스테이지 빌드: JDK로 jar를 만들고 실행 이미지에는 JRE와 jar 계층만 담습니다.
+  - 계층형 jar: 의존성과 코드 계층을 나눠 코드만 바뀌면 의존성 계층을 재사용합니다.
+  - 앱은 root가 아닌 `app` 사용자로 실행합니다.
+- 컨테이너 안의 앱은 `docker` 프로필로 실행하고, DB 주소는 compose 서비스 이름(`oracle-db`), 비밀번호는 `.env` 값을 환경 변수로 받습니다.
+  로컬 비밀번호가 든 `application-local.yml`은 jar와 이미지에 들어가지 않습니다.
 
 ## 2. 기술 스택 (두 서비스 공통)
 

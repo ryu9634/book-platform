@@ -36,6 +36,9 @@ class BookViewControllerTest {
     @MockitoBean
     BookQueryService bookQueryService;
 
+    @MockitoBean
+    com.ryu.library.user.loan.service.LoanQueryService loanQueryService;
+
     private final BookSummaryResponse summary =
             new BookSummaryResponse(1L, "이펙티브 자바", "조슈아 블로크", "인사이트", null, "컴퓨터/IT", 2, 3);
 
@@ -106,5 +109,25 @@ class BookViewControllerTest {
         mockMvc.perform(get("/api/v1/books/999"))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.error.code").value("B001"));
+    }
+
+    @Test
+    @DisplayName("로그인한 회원이 대출할 수 있으면 대출하기 버튼, 정지 중이면 정지 종료일을 보여 준다")
+    void detail_로그인_버튼분기() throws Exception {
+        // given
+        given(bookQueryService.getBook(1L)).willReturn(new BookDetailResponse(1L, "9788966262281", "이펙티브 자바",
+                "조슈아 블로크", "인사이트", null, null, null, null,
+                List.of(new BookDetailResponse.CopyItem(10L, "LIB-000001-001", BookCopyStatus.AVAILABLE))));
+        var loginMember = com.ryu.library.user.global.security.LoginMember.from(com.ryu.library.member.MemberFixture.activeMember());
+        org.springframework.test.util.ReflectionTestUtils.setField(loginMember, "memberId", 5L);
+        given(loanQueryService.actionState(5L, 1L))
+                .willReturn(com.ryu.library.user.loan.dto.BookActionState.of(com.ryu.library.user.loan.dto.BookActionState.Type.CAN_LOAN))
+                .willReturn(com.ryu.library.user.loan.dto.BookActionState.suspended(java.time.LocalDate.of(2026, 11, 20)));
+
+        // when, then
+        mockMvc.perform(get("/books/1").with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user(loginMember)))
+                .andExpect(content().string(containsString("대출하기")));
+        mockMvc.perform(get("/books/1").with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user(loginMember)))
+                .andExpect(content().string(containsString("대출 정지 중 (2026-11-20까지)")));
     }
 }

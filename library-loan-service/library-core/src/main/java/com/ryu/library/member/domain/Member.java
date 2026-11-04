@@ -1,6 +1,8 @@
 package com.ryu.library.member.domain;
 
 import com.ryu.library.global.common.BaseTimeEntity;
+import com.ryu.library.global.exception.BusinessException;
+import com.ryu.library.global.exception.ErrorCode;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -82,5 +84,43 @@ public class Member extends BaseTimeEntity {
 
     public boolean isWithdrawn() {
         return status == MemberStatus.WITHDRAWN;
+    }
+
+    // 정지 기간이 지났으면 따로 해제 작업이 없어도 이 시점에 정지를 풉니다.
+    public void releaseSuspensionIfExpired(LocalDate today) {
+        if (status == MemberStatus.SUSPENDED && suspendedUntil != null && today.isAfter(suspendedUntil)) {
+            this.status = MemberStatus.ACTIVE;
+            this.suspendedUntil = null;
+        }
+    }
+
+    public boolean isSuspendedOn(LocalDate today) {
+        releaseSuspensionIfExpired(today);
+        return status == MemberStatus.SUSPENDED;
+    }
+
+    public void validateCanBorrow(LocalDate today) {
+        if (isWithdrawn()) {
+            throw new BusinessException(ErrorCode.MEMBER_WITHDRAWN);
+        }
+        if (isSuspendedOn(today)) {
+            throw new BusinessException(ErrorCode.MEMBER_SUSPENDED, suspendedUntil);
+        }
+    }
+
+    // 연체 반납 시 연체 일수만큼 정지합니다. 이미 더 늦게까지 정지돼 있으면 늦은 날짜를 유지합니다.
+    public void suspendUntil(LocalDate until) {
+        if (suspendedUntil == null || until.isAfter(suspendedUntil)) {
+            this.suspendedUntil = until;
+        }
+        this.status = MemberStatus.SUSPENDED;
+    }
+
+    // 관리자가 정지를 직접 풉니다.
+    public void releaseSuspension() {
+        if (status == MemberStatus.SUSPENDED) {
+            this.status = MemberStatus.ACTIVE;
+            this.suspendedUntil = null;
+        }
     }
 }

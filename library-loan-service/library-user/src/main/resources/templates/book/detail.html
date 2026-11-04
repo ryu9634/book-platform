@@ -19,8 +19,17 @@
     </dl>
     <p class="description" th:if="${book.description}" th:text="${book.description}">소개</p>
 
-    <div th:fragment="actions" class="actions" id="book-actions">
+    <div class="actions" id="book-actions">
         <a th:if="${loginName == null}" class="button" th:href="@{/login}">로그인 후 대출 가능</a>
+        <th:block th:if="${action != null}" th:switch="${action.type().name()}">
+            <form th:case="'CAN_LOAN'" th:action="@{/loans}" method="post" class="inline">
+                <input type="hidden" name="bookId" th:value="${book.id}">
+                <button type="submit" class="button">대출하기</button>
+            </form>
+            <a th:case="'ALREADY_LOANED'" class="button secondary" th:href="@{/loans/my}">대출 중 - 내 대출에서 확인</a>
+            <span th:case="'NO_AVAILABLE_COPY'" class="muted">지금은 모든 권이 대출 중입니다.</span>
+            <span th:case="'SUSPENDED'" class="alert error" th:text="|대출 정지 중 (${action.suspendedUntil()}까지)|">대출 정지 중</span>
+        </th:block>
     </div>
 
     <h2 th:text="|소장 자료 (대출 가능 ${book.availableCount()} / ${#lists.size(book.copies)})|">소장 자료</h2>

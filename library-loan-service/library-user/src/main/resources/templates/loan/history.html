@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/default}">
+<head>
+    <title>대출 이력</title>
+</head>
+<body>
+<section layout:fragment="content">
+    <h1>대출 이력</h1>
+    <p th:if="${page.totalElements == 0}">대출 이력이 없습니다.</p>
+    <table th:unless="${page.totalElements == 0}" class="table">
+        <thead><tr><th>도서</th><th>대출일</th><th>반납 예정일</th><th>반납일</th><th>상태</th></tr></thead>
+        <tbody>
+        <tr th:each="loan : ${page.content}">
+            <td><a th:href="@{/books/{id}(id=${loan.bookId()})}" th:text="${loan.title()}">제목</a></td>
+            <td th:text="${#temporals.format(loan.loanedAt(), 'yyyy-MM-dd')}">2026-11-04</td>
+            <td th:text="${loan.dueDate()}">2026-11-18</td>
+            <td th:text="${loan.returnedAt() != null} ? ${#temporals.format(loan.returnedAt(), 'yyyy-MM-dd')} : '-'">-</td>
+            <td th:text="${loan.statusLabel()}">반납 완료</td>
+        </tr>
+        </tbody>
+    </table>
+    <nav class="pager" th:if="${page.totalPages > 1}">
+        <a th:if="${page.hasPrevious()}" th:href="@{/loans/my/history(page=${page.number - 1})}">이전</a>
+        <span th:text="|${page.number + 1} / ${page.totalPages}|">1 / 1</span>
+        <a th:if="${page.hasNext()}" th:href="@{/loans/my/history(page=${page.number + 1})}">다음</a>
+    </nav>
+    <a th:href="@{/loans/my}">내 대출로</a>
+</section>
+</body>
+</html>

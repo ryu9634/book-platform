@@ -103,4 +103,32 @@ class LoanScenarioTest {
                 Reservation.create(member.getId(), book.getId(), java.time.LocalDateTime.now(clock))))
                 .isInstanceOf(DataIntegrityViolationException.class);
     }
+
+    @Test
+    @DisplayName("반납 예정일이 지난 대출은 연체로 바뀌고, 수령 기한이 지난 예약은 만료되어 권이 서가로 돌아간다")
+    void 정기작업_연체전환_예약만료() {
+        // given
+        Book book = bookRepository.save(BookFixture.book("9780000000093", "정기 작업 도서"));
+        BookCopy copy = bookCopyRepository.save(BookCopy.create(book, "LIB-SCH-001"));
+        Member a = memberRepository.save(MemberFixture.activeMember("scha", "scha@example.com"));
+        Member b = memberRepository.save(MemberFixture.activeMember("schb", "schb@example.com"));
+        Long loanId = loanService.loanBook(a.getId(), book.getId());
+        Long reservationId = reservationService.reserve(b.getId(), book.getId());
+        jdbcTemplate.update("UPDATE LOAN SET DUE_DATE = ? WHERE LOAN_ID = ?",
+                java.sql.Date.valueOf(LocalDate.now(clock).minusDays(1)), loanId);
+
+        // when: 연체 전환
+        assertThat(loanService.markOverdueLoans()).isEqualTo(1);
+        assertThat(loanRepository.findById(loanId).orElseThrow().getStatus()).isEqualTo(LoanStatus.OVERDUE);
+
+        // 반납 → B 수령 가능 → 수령 기한을 지난 것으로 당기고 만료 처리
+        loanService.returnByMember(a.getId(), loanId);
+        jdbcTemplate.update("UPDATE RESERVATION SET EXPIRES_AT = ? WHERE RESERVATION_ID = ?",
+                java.sql.Timestamp.valueOf(java.time.LocalDateTime.now(clock).minusMinutes(1)), reservationId);
+        assertThat(reservationService.expireOverdueHolds()).isEqualTo(1);
+
+        // then
+        assertThat(reservationRepository.findById(reservationId).orElseThrow().getStatus()).isEqualTo(ReservationStatus.EXPIRED);
+        assertThat(bookCopyRepository.findById(copy.getId()).orElseThrow().getStatus()).isEqualTo(BookCopyStatus.AVAILABLE);
+    }
 }

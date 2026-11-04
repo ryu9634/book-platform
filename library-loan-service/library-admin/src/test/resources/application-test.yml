@@ -1,3 +1,7 @@
 spring:
   datasource:
     password: unused  # Testcontainers가 접속 정보를 덮어씁니다.
+
+library:
+  schedule:
+    enabled: false  # 테스트 중에는 정기 작업을 돌리지 않습니다.

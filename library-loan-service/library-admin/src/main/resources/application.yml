@@ -11,6 +11,11 @@ server:
 
 # 첫 관리자 계정. 값은 환경 변수로만 넣습니다. 비어 있으면 계정을 만들지 않습니다.
 library:
+  # 정기 작업 (관리자 앱에서만 실행)
+  schedule:
+    enabled: true
+    overdue-cron: "0 10 0 * * *"            # 매일 00:10
+    reservation-expire-cron: "0 */10 * * * *" # 10분마다
   # 국립중앙도서관 서지 정보 제공 서비스(공공데이터포털). 인증키는 환경 변수(.env의 NL_API_KEY)로만 넣습니다.
   nl-api:
     base-url: https://apis.data.go.kr/1371029/BookInformationService_v2

@@ -6,7 +6,7 @@
 - 상태: 프로젝트 뼈대 완료 (멀티모듈, 공통 설정, 예외 처리, Flyway). 도메인 구현 전
 - 문서: `docs/01-erd.md` (테이블 설계), `docs/02-screen-flow.md` (화면 흐름과 URL)
 - 스키마: `ebook-core/src/main/resources/db/migration/` (Flyway). `V1__init.sql` 테이블, `V2__insert_default_categories.sql` 기본 분류
-- 관리자 계정은 마이그레이션에 넣지 않습니다. 도서 대출 서비스처럼 admin 앱이 시작할 때 환경 변수로 한 번 만듭니다(회원 기능을 만들 때 추가).
+- 관리자 계정은 마이그레이션에 넣지 않습니다. admin 앱이 시작할 때 환경 변수 `EBOOK_ADMIN_LOGIN_ID`, `EBOOK_ADMIN_PASSWORD`(루트 `.env`)로 한 번 만듭니다. 값이 비어 있으면 만들지 않습니다.
 
 ## 모듈
 

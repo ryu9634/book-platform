@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/default}">
+<head>
+    <title>내 정보</title>
+</head>
+<body>
+<section layout:fragment="content" class="narrow">
+    <p th:if="${message}" class="alert" th:text="${message}">처리 결과</p>
+    <h1>내 정보</h1>
+    <dl class="detail">
+        <dt>아이디</dt><dd th:text="${me.loginId()}">reader01</dd>
+        <dt>이름</dt><dd th:text="${me.name()}">홍길동</dd>
+        <dt>이메일</dt><dd th:text="${me.email()}">reader01@example.com</dd>
+    </dl>
+
+    <h2>비밀번호 변경</h2>
+    <form th:action="@{/members/me/password}" th:object="${passwordForm}" method="post" class="form">
+        <label for="currentPassword">현재 비밀번호</label>
+        <input type="password" th:field="*{currentPassword}">
+        <p class="field-error" th:errors="*{currentPassword}"></p>
+        <label for="newPassword">새 비밀번호</label>
+        <input type="password" th:field="*{newPassword}">
+        <p class="field-error" th:errors="*{newPassword}"></p>
+        <label for="newPasswordConfirm">새 비밀번호 확인</label>
+        <input type="password" th:field="*{newPasswordConfirm}">
+        <p class="field-error" th:errors="*{newPasswordConfirm}"></p>
+        <button type="submit">변경</button>
+    </form>
+</section>
+</body>
+</html>

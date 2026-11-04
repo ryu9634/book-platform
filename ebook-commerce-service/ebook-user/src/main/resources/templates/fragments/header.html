@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<body>
+<header th:fragment="header" class="header">
+    <a class="logo" th:href="@{/}">ebook 스토어</a>
+    <nav>
+        <th:block th:if="${loginName != null}">
+            <a th:href="@{/members/me}" th:text="|${loginName}님|">회원님</a>
+            <form th:action="@{/logout}" method="post" class="inline">
+                <button type="submit" class="link">로그아웃</button>
+            </form>
+        </th:block>
+        <th:block th:unless="${loginName != null}">
+            <a th:href="@{/login}">로그인</a>
+            <a th:href="@{/members/new}">회원가입</a>
+        </th:block>
+    </nav>
+</header>
+</body>
+</html>

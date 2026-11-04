@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/default}">
+<head>
+    <title>도서 등록</title>
+</head>
+<body>
+<section layout:fragment="content" class="medium">
+    <h1>도서 등록</h1>
+
+    <form th:action="@{/admin/books/new}" method="get" class="search">
+        <input type="text" name="isbn" th:value="${bookForm.isbn}" placeholder="ISBN 13자리" maxlength="13">
+        <button type="submit">국립중앙도서관에서 불러오기</button>
+    </form>
+    <p th:if="${lookupError}" class="alert error" th:text="${lookupError}">조회 실패</p>
+
+    <form th:action="@{/admin/books}" th:object="${bookForm}" method="post" class="form">
+        <p th:if="${#fields.hasGlobalErrors()}" class="alert error" th:each="err : ${#fields.globalErrors()}" th:text="${err}">오류</p>
+
+        <img th:if="*{coverImageUrl}" th:src="*{coverImageUrl}" alt="표지" class="cover">
+
+        <label for="isbn">ISBN</label>
+        <input type="text" th:field="*{isbn}" maxlength="13">
+        <p class="field-error" th:errors="*{isbn}"></p>
+
+        <label for="title">제목</label>
+        <input type="text" th:field="*{title}">
+        <p class="field-error" th:errors="*{title}"></p>
+
+        <label for="author">저자</label>
+        <input type="text" th:field="*{author}">
+        <p class="field-error" th:errors="*{author}"></p>
+
+        <label for="publisher">출판사</label>
+        <input type="text" th:field="*{publisher}">
+        <p class="field-error" th:errors="*{publisher}"></p>
+
+        <label for="publishedDate">출판일</label>
+        <input type="date" th:field="*{publishedDate}">
+
+        <label for="categoryId">분류</label>
+        <select th:field="*{categoryId}">
+            <option value="">선택 안 함</option>
+            <option th:each="c : ${categories}" th:value="${c.id}" th:text="${c.name}">분류</option>
+        </select>
+
+        <label for="coverImageUrl">표지 이미지 URL</label>
+        <input type="text" th:field="*{coverImageUrl}">
+        <p class="field-error" th:errors="*{coverImageUrl}"></p>
+
+        <label for="description">소개</label>
+        <textarea th:field="*{description}" rows="6"></textarea>
+        <p class="field-error" th:errors="*{description}"></p>
+
+        <button type="submit">등록</button>
+    </form>
+</section>
+</body>
+</html>

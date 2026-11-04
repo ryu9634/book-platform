@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/default}">
+<head>
+    <title>도서 상세</title>
+</head>
+<body>
+<section layout:fragment="content" class="medium">
+    <p th:if="${message}" class="alert" th:text="${message}">처리 결과</p>
+    <h1 th:text="${book.title}">제목</h1>
+    <img th:if="${book.coverImageUrl}" th:src="${book.coverImageUrl}" alt="표지" class="cover">
+    <dl class="detail">
+        <dt>저자</dt><dd th:text="${book.author}">저자</dd>
+        <dt>출판사</dt><dd th:text="${book.publisher} ?: '-'">출판사</dd>
+        <dt>출판일</dt><dd th:text="${book.publishedDate} ?: '-'">출판일</dd>
+        <dt>분류</dt><dd th:text="${book.categoryName} ?: '-'">분류</dd>
+        <dt>ISBN</dt><dd th:text="${book.isbn}">ISBN</dd>
+    </dl>
+    <p class="description" th:if="${book.description}" th:text="${book.description}">소개</p>
+    <a th:href="@{/admin/books}">목록으로</a>
+</section>
+</body>
+</html>

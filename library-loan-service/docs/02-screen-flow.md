@@ -67,7 +67,7 @@ flowchart LR
 | 9 | 내 예약 | GET `/reservations/my` | USER | 대기 순번, 수령 기한, 취소 버튼 |
 | 10 | 관리자 홈 | GET `/admin` | ADMIN | 오늘 대출/반납 수, 연체 건수, 예약 대기 건수 |
 | 11 | 도서 관리 | GET `/admin/books` | ADMIN | 목록, 검색, 등록/수정/삭제(소프트) |
-| 12 | 도서 등록/수정 | GET/POST `/admin/books/new`, `/admin/books/{id}/edit` | ADMIN | 서지 입력, 표지 URL, 분류 선택 |
+| 12 | 도서 등록/수정 | GET/POST `/admin/books/new`, `/admin/books/{id}/edit` | ADMIN | ISBN을 입력하면 국립중앙도서관 ISBN 서지정보 API로 제목, 저자, 출판사, 출판일, 표지를 채움. 조회 실패 시 직접 입력. 분류 선택 |
 | 13 | 소장 자료 관리 | GET `/admin/books/{id}/copies` | ADMIN | 권 추가(바코드 자동 생성), 상태 변경(분실/폐기) |
 | 14 | 대출 현황 | GET `/admin/loans` | ADMIN | 전체 대출 목록, 회원/도서 검색, 데스크 반납 처리 |
 | 15 | 연체 현황 | GET `/admin/loans/overdue` | ADMIN | 연체 회원과 도서, 연체 일수 |

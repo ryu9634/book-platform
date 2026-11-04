@@ -68,6 +68,7 @@ services:
       DB_PASSWORD: ${LIBRARY_DB_PASSWORD}
       LIBRARY_ADMIN_LOGIN_ID: ${LIBRARY_ADMIN_LOGIN_ID:-}
       LIBRARY_ADMIN_PASSWORD: ${LIBRARY_ADMIN_PASSWORD:-}
+      NL_API_KEY: ${NL_API_KEY:-}
 
   ebook-user:
     <<: *app-common

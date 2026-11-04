@@ -9,6 +9,9 @@ spring:
 
 # 첫 관리자 계정. 루트 .env의 LIBRARY_ADMIN_LOGIN_ID, LIBRARY_ADMIN_PASSWORD와 같은 값을 직접 넣습니다.
 library:
+  # 국립중앙도서관 API 인증키. 루트 .env의 NL_API_KEY와 같은 값을 직접 넣습니다.
+  nl-api:
+    cert-key:
   admin:
     initial-login-id:
     initial-password:

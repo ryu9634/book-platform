@@ -2,6 +2,8 @@ package com.ryu.library.global.exception;
 
 import com.ryu.library.global.common.ApiResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.ResponseEntity;
@@ -16,7 +18,9 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 
 // API(@RestController) 요청 전용. 화면 요청용 @ControllerAdvice는 화면을 만들 때 따로 추가합니다.
 // 없는 경로(404), 지원하지 않는 메서드(405)는 컨트롤러를 정하기 전에 나는 예외라 여기까지 오지 않고 Spring 기본 처리를 따릅니다.
+// 화면용 @ControllerAdvice(annotations = Controller.class)도 @RestController에 적용되므로, API 요청은 이 핸들러가 먼저 처리하도록 우선순위를 가장 높게 둡니다.
 @Slf4j
+@Order(Ordered.HIGHEST_PRECEDENCE)
 @RestControllerAdvice(annotations = RestController.class)
 public class GlobalExceptionHandler {
 

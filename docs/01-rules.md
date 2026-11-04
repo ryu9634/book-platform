@@ -132,6 +132,8 @@
   - `MethodArgumentNotValidException`, `BindException` → 400, 필드 오류 목록
   - `OptimisticLockingFailureException` → 409
   - `DataIntegrityViolationException` → 409 (유니크 제약 위반을 비즈니스 메시지로 변환)
+  - 깨진 JSON, 타입 불일치, 필수 파라미터 누락 → 400 / 지원하지 않는 Content-Type → 415
+  - 없는 경로(404)와 지원하지 않는 메서드(405)는 컨트롤러를 정하기 전에 나는 예외라 `annotations = RestController.class` 범위의 핸들러까지 오지 않습니다. Spring 기본 처리로 상태 코드만 맞게 나갑니다.
   - 그 외 `Exception` → 500, 로그만 남기고 메시지는 숨김
 - 화면 요청과 API 요청의 에러 응답이 다르므로 `@RestControllerAdvice(annotations = RestController.class)`와 화면용 `@ControllerAdvice`를 분리합니다.
 - 예외를 catch해서 삼키지 않습니다. catch하면 반드시 로그를 남기거나 다시 던집니다.

@@ -27,6 +27,7 @@ erDiagram
     BOOK ||--|{ BOOK_COPY : "소장"
     BOOK ||--o{ RESERVATION : "예약 대상"
     BOOK_COPY ||--o{ LOAN : "대출 대상"
+    MEMBER ||--o{ REFRESH_TOKEN : "API 로그인"
 
     MEMBER {
         NUMBER MEMBER_ID PK
@@ -83,6 +84,15 @@ erDiagram
         TIMESTAMP CREATED_AT
         TIMESTAMP UPDATED_AT
     }
+    REFRESH_TOKEN {
+        NUMBER REFRESH_TOKEN_ID PK
+        NUMBER MEMBER_ID "→ MEMBER"
+        VARCHAR2 TOKEN_HASH UK "SHA-256 hex, 원문은 저장하지 않음"
+        TIMESTAMP EXPIRES_AT
+        TIMESTAMP REVOKED_AT "NULL이면 사용 가능"
+        TIMESTAMP CREATED_AT
+        TIMESTAMP UPDATED_AT
+    }
     RESERVATION {
         NUMBER RESERVATION_ID PK
         NUMBER MEMBER_ID "→ MEMBER"
@@ -108,6 +118,7 @@ erDiagram
 | | | BOOK_COPY.BOOK_ID → BOOK | `@ManyToOne Book book` (NO_CONSTRAINT, 단방향, cascade 없음) |
 | Loan | LOAN | MEMBER_ID, BOOK_COPY_ID | `Long memberId`, `Long bookCopyId` |
 | Reservation | RESERVATION | MEMBER_ID, BOOK_ID | `Long memberId`, `Long bookId` |
+| RefreshToken | REFRESH_TOKEN | MEMBER_ID | `Long memberId` (V3 마이그레이션) |
 
 - BOOK_COPY는 BOOK 없이 존재할 수 없어 같은 애그리거트로 묶지만, 권마다 상태와 `@Version`을 따로 가지므로 `BookCopyRepository`로 직접 저장하고 cascade는 쓰지 않습니다.
 - 다른 애그리거트 데이터가 필요한 목록(예: 내 대출 목록의 도서 제목)은 JPQL 조인(`join BookCopy c on c.id = l.bookCopyId`)과 DTO Projection으로 한 번에 조회합니다.

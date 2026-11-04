@@ -11,9 +11,9 @@ server:
 
 # 첫 관리자 계정. 값은 환경 변수로만 넣습니다. 비어 있으면 계정을 만들지 않습니다.
 library:
-  # 국립중앙도서관 ISBN 서지정보 API. 인증키는 환경 변수(.env의 NL_API_KEY)로만 넣습니다.
+  # 국립중앙도서관 서지 정보 제공 서비스(공공데이터포털). 인증키는 환경 변수(.env의 NL_API_KEY)로만 넣습니다.
   nl-api:
-    base-url: https://www.nl.go.kr
+    base-url: https://apis.data.go.kr/1371029/BookInformationService_v2
     cert-key: ${NL_API_KEY:}
     connect-timeout: 2s
     read-timeout: 5s

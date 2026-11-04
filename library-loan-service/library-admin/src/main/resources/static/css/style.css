@@ -29,3 +29,4 @@ a { color: #5b3cc4; }
 .detail { display: grid; grid-template-columns: 100px 1fr; gap: 6px 12px; }
 .detail dt { color: #666; }
 .description { white-space: pre-line; line-height: 1.6; }
+.hint { margin: 0; color: #666; font-size: 0.9em; }

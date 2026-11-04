@@ -33,6 +33,7 @@ public enum ErrorCode {
     DUPLICATE_ISBN(HttpStatus.CONFLICT, "B002", "이미 등록된 ISBN입니다."),
     ISBN_NOT_FOUND_IN_NL(HttpStatus.NOT_FOUND, "B003", "국립중앙도서관에서 해당 ISBN의 도서를 찾을 수 없습니다."),
     NL_API_NOT_CONFIGURED(HttpStatus.SERVICE_UNAVAILABLE, "B004", "국립중앙도서관 API 인증키가 설정되지 않았습니다."),
+    NL_API_INVALID_KEY(HttpStatus.SERVICE_UNAVAILABLE, "B006", "국립중앙도서관 API 인증키가 유효하지 않습니다. 공공데이터포털에서 키 상태를 확인해 주세요."),
     CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, "B005", "분류를 찾을 수 없습니다.");
 
     // 도메인 에러 코드는 기능을 만들 때 도메인별 접두사로 추가합니다. (A 인증, M 회원, B 도서, L 대출, R 예약)

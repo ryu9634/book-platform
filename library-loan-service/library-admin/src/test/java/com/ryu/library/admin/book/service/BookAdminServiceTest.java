@@ -15,7 +15,6 @@ import com.ryu.library.book.repository.BookRepository;
 import com.ryu.library.category.repository.CategoryRepository;
 import com.ryu.library.global.exception.BusinessException;
 import com.ryu.library.global.exception.ErrorCode;
-import java.time.LocalDate;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -47,14 +46,16 @@ class BookAdminServiceTest {
     void lookupByIsbn_조회성공_폼채움() {
         // given
         given(nationalLibraryClient.findByIsbn(ISBN)).willReturn(Optional.of(new NlBookInfo(
-                ISBN, "클린 코드", "로버트 C. 마틴", "인사이트", LocalDate.of(2013, 12, 24), null, null, "005.1")));
+                ISBN, "이펙티브 자바", "조슈아 블로크 지음 ; 개앞맵시 옮김", "인사이트", 2018, null, "005.133")));
 
         // when
         BookForm form = bookAdminService.lookupByIsbn(ISBN);
 
-        // then
-        assertThat(form.getTitle()).isEqualTo("클린 코드");
+        // then: 발행일은 연도만 있어 날짜는 비워 두고 연도는 참고용으로만 둔다
+        assertThat(form.getTitle()).isEqualTo("이펙티브 자바");
         assertThat(form.getIsbn()).isEqualTo(ISBN);
+        assertThat(form.getPublishedDate()).isNull();
+        assertThat(form.getPublishedYearHint()).isEqualTo(2018);
     }
 
     @Test
@@ -86,8 +87,8 @@ class BookAdminServiceTest {
     void register_정상_저장() {
         // given
         BookForm form = BookForm.withIsbn(ISBN);
-        form.setTitle("클린 코드");
-        form.setAuthor("로버트 C. 마틴");
+        form.setTitle("이펙티브 자바");
+        form.setAuthor("조슈아 블로크 지음");
         form.setCategoryId(1L);
         given(categoryRepository.existsById(1L)).willReturn(true);
         given(bookRepository.save(any(Book.class))).willAnswer(invocation -> invocation.getArgument(0));
@@ -98,7 +99,7 @@ class BookAdminServiceTest {
         // then
         ArgumentCaptor<Book> captor = ArgumentCaptor.forClass(Book.class);
         verify(bookRepository).save(captor.capture());
-        assertThat(captor.getValue().getTitle()).isEqualTo("클린 코드");
+        assertThat(captor.getValue().getTitle()).isEqualTo("이펙티브 자바");
         assertThat(captor.getValue().getCategoryId()).isEqualTo(1L);
     }
 

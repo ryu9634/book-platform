@@ -6,20 +6,25 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.ryu.library.global.config.PasswordEncoderConfig;
 import com.ryu.library.global.exception.BusinessException;
 import com.ryu.library.global.exception.ErrorCode;
+import com.ryu.library.user.global.config.SecurityConfig;
+import com.ryu.library.user.global.security.LoginMemberDetailsService;
 import com.ryu.library.user.member.dto.MemberResponse;
 import com.ryu.library.user.member.dto.MemberSignupRequest;
 import com.ryu.library.user.member.service.MemberService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Import;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(MemberApiController.class)
+@Import({SecurityConfig.class, PasswordEncoderConfig.class})
 class MemberApiControllerTest {
 
     @Autowired
@@ -27,6 +32,9 @@ class MemberApiControllerTest {
 
     @MockitoBean
     MemberService memberService;
+
+    @MockitoBean
+    LoginMemberDetailsService loginMemberDetailsService;
 
     private static final String VALID_BODY = """
             {"loginId": "reader01", "password": "plain-password", "name": "홍길동", "email": "reader01@example.com"}

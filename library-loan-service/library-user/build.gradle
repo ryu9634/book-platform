@@ -6,10 +6,11 @@ dependencies {
 	implementation project(':library-core')
 	implementation 'org.springframework.boot:spring-boot-starter-webmvc'
 	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
-	// 로그인 기능 전까지는 비밀번호 암호화(BCrypt)만 씁니다. 필터 체인은 Security 도입 때 추가합니다.
-	implementation 'org.springframework.security:spring-security-crypto'
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+	implementation 'nz.net.ultraq.thymeleaf:thymeleaf-layout-dialect'
 
 	testImplementation testFixtures(project(':library-core'))
 	testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
 	testImplementation 'org.springframework.boot:spring-boot-starter-thymeleaf-test'
+	testImplementation 'org.springframework.boot:spring-boot-starter-security-test'
 }

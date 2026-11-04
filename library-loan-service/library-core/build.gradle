@@ -11,10 +11,14 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-flyway'
 	implementation 'org.flywaydb:flyway-database-oracle'
 	runtimeOnly 'com.oracle.database.jdbc:ojdbc17'
+	// 비밀번호 해시(BCrypt)는 user, admin 앱이 함께 쓰므로 core에 둡니다. 웹 보안 기능은 포함하지 않습니다.
+	api 'org.springframework.security:spring-security-crypto'
 
 	// 두 앱이 함께 쓰는 API 예외 처리(GlobalExceptionHandler)만 Spring MVC에 의존합니다. 실제 라이브러리는 앱이 제공합니다.
 	compileOnly 'org.springframework.boot:spring-boot-starter-webmvc'
 	testImplementation 'org.springframework.boot:spring-boot-starter-webmvc'
+	// API 인증 실패를 ApiResponse JSON으로 바꾸는 핸들러(ApiSecurityErrorHandler)만 Spring Security에 의존합니다.
+	compileOnly 'org.springframework.boot:spring-boot-starter-security'
 
 	testImplementation 'org.springframework.boot:spring-boot-starter-data-jpa-test'
 	testImplementation 'org.springframework.boot:spring-boot-starter-flyway-test'

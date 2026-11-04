@@ -30,4 +30,18 @@ class MemberTest {
         assertThat(admin.getRole()).isEqualTo(MemberRole.ADMIN);
         assertThat(admin.isAdmin()).isTrue();
     }
+
+    @Test
+    @DisplayName("탈퇴하면 탈퇴 상태가 되고 행은 그대로 남는다")
+    void withdraw_활성회원_WITHDRAWN상태() {
+        // given
+        Member member = Member.create("reader01", "encoded", "홍길동", "reader01@example.com", null);
+
+        // when
+        member.withdraw();
+
+        // then
+        assertThat(member.getStatus()).isEqualTo(MemberStatus.WITHDRAWN);
+        assertThat(member.isWithdrawn()).isTrue();
+    }
 }

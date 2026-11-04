@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<body>
+<header th:fragment="header" class="header">
+    <a class="logo" th:href="@{/}">도서관</a>
+    <nav>
+        <th:block th:if="${loginName != null}">
+            <span th:text="|${loginName}님|">회원님</span>
+            <form th:action="@{/logout}" method="post" class="inline">
+                <button type="submit" class="link">로그아웃</button>
+            </form>
+        </th:block>
+        <a th:unless="${loginName != null}" th:href="@{/login}">로그인</a>
+    </nav>
+</header>
+</body>
+</html>

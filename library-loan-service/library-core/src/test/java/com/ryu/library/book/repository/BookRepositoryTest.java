@@ -52,4 +52,20 @@ class BookRepositoryTest {
                 .extracting("name")
                 .containsExactly("문학", "컴퓨터/IT", "경제/경영");
     }
+
+    @Test
+    @DisplayName("검색어는 제목이나 저자에서 대소문자 없이 찾고, 분류가 있으면 분류로도 거른다")
+    void search_제목저자_분류() {
+        // given
+        bookRepository.save(Book.builder().isbn("9780000000021").title("Effective Java").author("Joshua Bloch").categoryId(1L).build());
+        bookRepository.save(Book.builder().isbn("9780000000022").title("자바 입문").author("홍길동").categoryId(2L).build());
+        bookRepository.saveAndFlush(Book.builder().isbn("9780000000023").title("파이썬").author("JAVA 전문가").categoryId(1L).build());
+
+        // when, then
+        assertThat(bookRepository.search("java", null, PageRequest.of(0, 10)).getTotalElements()).isEqualTo(2);
+        assertThat(bookRepository.search("자바", null, PageRequest.of(0, 10)).getTotalElements()).isEqualTo(1);
+        assertThat(bookRepository.search(null, 1L, PageRequest.of(0, 10)).getTotalElements()).isEqualTo(2);
+        assertThat(bookRepository.search("java", 2L, PageRequest.of(0, 10)).getTotalElements()).isZero();
+        assertThat(bookRepository.search(null, null, PageRequest.of(0, 10)).getTotalElements()).isEqualTo(3);
+    }
 }

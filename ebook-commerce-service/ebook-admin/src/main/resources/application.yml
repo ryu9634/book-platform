@@ -1,6 +1,11 @@
 spring:
   application:
     name: ebook-admin
+  servlet:
+    multipart:
+      # 본문 파일 최대 크기(ebook.storage.max-file-size)보다 조금 크게 둡니다. 정확한 검사는 저장소가 합니다.
+      max-file-size: 6MB
+      max-request-size: 7MB
   config:
     import: classpath:application-core.yml
   profiles:

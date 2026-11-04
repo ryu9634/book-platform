@@ -6,9 +6,23 @@
 </head>
 <body>
 <section layout:fragment="content">
-    <h1>ebook 스토어</h1>
-    <p th:if="${loginName != null}" th:text="|${loginName}님, 로그인되었습니다.|">로그인되었습니다.</p>
-    <p th:unless="${loginName != null}">전자책을 구매하려면 <a th:href="@{/login}">로그인</a>해 주세요.</p>
+    <form th:action="@{/ebooks}" method="get" class="search">
+        <input type="text" name="keyword" placeholder="제목이나 저자로 검색">
+        <button type="submit">검색</button>
+    </form>
+    <h2>베스트셀러</h2>
+    <p th:if="${#lists.isEmpty(bestsellers)}">아직 판매 중인 전자책이 없습니다.</p>
+    <ul class="cards">
+        <th:block th:each="ebook : ${bestsellers}">
+            <li th:replace="~{fragments/ebook-card :: card(${ebook})}"></li>
+        </th:block>
+    </ul>
+    <h2>신간</h2>
+    <ul class="cards">
+        <th:block th:each="ebook : ${newArrivals}">
+            <li th:replace="~{fragments/ebook-card :: card(${ebook})}"></li>
+        </th:block>
+    </ul>
 </section>
 </body>
 </html>

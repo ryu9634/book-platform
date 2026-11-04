@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/default}">
+<head>
+    <title>전자책</title>
+</head>
+<body>
+<section layout:fragment="content">
+    <h1>전자책</h1>
+    <form th:action="@{/ebooks}" method="get" class="search">
+        <input type="text" name="keyword" th:value="${keyword}" placeholder="제목이나 저자로 검색">
+        <select name="categoryId">
+            <option value="">전체 분류</option>
+            <option th:each="c : ${categories}" th:value="${c.id()}" th:text="${c.name()}" th:selected="${c.id() == categoryId}">분류</option>
+        </select>
+        <select name="sort">
+            <option value="POPULAR" th:selected="${sort.name() == 'POPULAR'}">인기순</option>
+            <option value="NEWEST" th:selected="${sort.name() == 'NEWEST'}">신간순</option>
+            <option value="PRICE_ASC" th:selected="${sort.name() == 'PRICE_ASC'}">낮은 가격순</option>
+            <option value="PRICE_DESC" th:selected="${sort.name() == 'PRICE_DESC'}">높은 가격순</option>
+        </select>
+        <button type="submit">검색</button>
+    </form>
+    <p th:text="|검색 결과 ${page.totalElements}건|">검색 결과</p>
+    <ul class="cards">
+        <th:block th:each="ebook : ${page.content}">
+            <li th:replace="~{fragments/ebook-card :: card(${ebook})}"></li>
+        </th:block>
+    </ul>
+    <nav class="pager" th:if="${page.totalPages > 1}">
+        <a th:if="${page.hasPrevious()}" th:href="@{/ebooks(page=${page.number - 1}, keyword=${keyword}, categoryId=${categoryId}, sort=${sort})}">이전</a>
+        <span th:text="|${page.number + 1} / ${page.totalPages}|">1 / 1</span>
+        <a th:if="${page.hasNext()}" th:href="@{/ebooks(page=${page.number + 1}, keyword=${keyword}, categoryId=${categoryId}, sort=${sort})}">다음</a>
+    </nav>
+</section>
+</body>
+</html>

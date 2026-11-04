@@ -13,3 +13,27 @@ a { color: #2457c5; }
 .link { border: 0; background: none; color: #2457c5; cursor: pointer; padding: 0; font: inherit; }
 .alert { padding: 8px 12px; border-radius: 4px; background: #eef3ff; }
 .alert.error { background: #fdecec; color: #b42318; }
+.medium { max-width: 720px; }
+.search { display: flex; gap: 8px; margin: 16px 0; }
+.search input { flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+.search select, .search button { padding: 8px 14px; border: 1px solid #2457c5; border-radius: 4px; background: #fff; color: #2457c5; cursor: pointer; }
+.cards { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 16px; }
+.card { display: flex; flex-direction: column; gap: 4px; }
+.card a { text-decoration: none; color: inherit; display: flex; flex-direction: column; gap: 6px; }
+.cover-sm { width: 100%; aspect-ratio: 3 / 4; object-fit: cover; border: 1px solid #eee; }
+.placeholder { display: flex; align-items: center; justify-content: center; padding: 8px; background: #f3f5fa; color: #667; text-align: center; font-size: 0.9em; }
+.cover { max-width: 180px; border: 1px solid #eee; }
+.muted { color: #667; font-size: 0.9em; }
+.badge { align-self: flex-start; padding: 2px 8px; border-radius: 10px; background: #eee; font-size: 0.8em; }
+.badge.ok { background: #e6f4ea; color: #1e6b34; }
+.table { width: 100%; border-collapse: collapse; }
+.table th, .table td { padding: 8px; border-bottom: 1px solid #eee; text-align: left; }
+.pager { display: flex; gap: 12px; justify-content: center; margin-top: 16px; }
+.detail { display: grid; grid-template-columns: 100px 1fr; gap: 6px 12px; }
+.detail dt { color: #666; }
+.description { white-space: pre-line; line-height: 1.6; }
+.actions { margin: 16px 0; display: flex; gap: 8px; align-items: center; }
+.button { display: inline-block; padding: 8px 14px; border: 0; border-radius: 4px; background: #2457c5; color: #fff; text-decoration: none; cursor: pointer; font: inherit; }
+.button.secondary { background: #fff; color: #2457c5; border: 1px solid #2457c5; }
+.field-error { margin: 0; color: #b42318; font-size: 0.9em; }
+.field-error:empty { display: none; }

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/default}">
+<head>
+    <title>회원가입</title>
+</head>
+<body>
+<section layout:fragment="content" class="narrow">
+    <h1>회원가입</h1>
+    <form th:action="@{/members/new}" th:object="${signupForm}" method="post" class="form">
+        <label for="loginId">아이디</label>
+        <input type="text" th:field="*{loginId}" autofocus>
+        <p class="field-error" th:errors="*{loginId}"></p>
+
+        <label for="password">비밀번호</label>
+        <input type="password" th:field="*{password}">
+        <p class="field-error" th:errors="*{password}"></p>
+
+        <label for="passwordConfirm">비밀번호 확인</label>
+        <input type="password" th:field="*{passwordConfirm}">
+        <p class="field-error" th:errors="*{passwordConfirm}"></p>
+
+        <label for="name">이름</label>
+        <input type="text" th:field="*{name}">
+        <p class="field-error" th:errors="*{name}"></p>
+
+        <label for="email">이메일</label>
+        <input type="email" th:field="*{email}">
+        <p class="field-error" th:errors="*{email}"></p>
+
+        <label for="phone">전화번호 (선택)</label>
+        <input type="text" th:field="*{phone}" placeholder="010-0000-0000">
+        <p class="field-error" th:errors="*{phone}"></p>
+
+        <button type="submit">가입하기</button>
+    </form>
+</section>
+</body>
+</html>

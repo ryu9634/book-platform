@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/default}">
+<head>
+    <title>도서 검색</title>
+</head>
+<body>
+<section layout:fragment="content">
+    <h1>도서 검색</h1>
+    <form th:action="@{/books}" method="get" class="search">
+        <input type="text" name="keyword" th:value="${keyword}" placeholder="제목이나 저자로 검색">
+        <select name="categoryId">
+            <option value="">전체 분류</option>
+            <option th:each="c : ${categories}" th:value="${c.id}" th:text="${c.name}" th:selected="${c.id == categoryId}">분류</option>
+        </select>
+        <button type="submit">검색</button>
+    </form>
+    <p th:text="|검색 결과 ${page.totalElements}건|">검색 결과</p>
+    <ul class="cards">
+        <!-- th:replace가 th:each보다 먼저 실행되므로 반복은 바깥 블록에 둡니다. -->
+        <th:block th:each="book : ${page.content}">
+            <li th:replace="~{fragments/book-card :: card(${book})}"></li>
+        </th:block>
+    </ul>
+    <nav class="pager" th:if="${page.totalPages > 1}">
+        <a th:if="${page.hasPrevious()}" th:href="@{/books(page=${page.number - 1}, keyword=${keyword}, categoryId=${categoryId})}">이전</a>
+        <span th:text="|${page.number + 1} / ${page.totalPages}|">1 / 1</span>
+        <a th:if="${page.hasNext()}" th:href="@{/books(page=${page.number + 1}, keyword=${keyword}, categoryId=${categoryId})}">다음</a>
+    </nav>
+</section>
+</body>
+</html>

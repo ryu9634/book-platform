@@ -28,6 +28,9 @@ docker compose --profile app down             # 전체 종료 (데이터 유지,
 |---|---|
 | 도서 대출 회원 / 관리자 | http://localhost:8081 / http://localhost:9081 |
 | ebook 회원 / 관리자 | http://localhost:8082 / http://localhost:9082 |
+| API 문서 (Swagger) | http://localhost:8081/swagger-ui.html, http://localhost:8082/swagger-ui.html |
+
+관리자 계정은 `.env`의 `LIBRARY_ADMIN_*`, `EBOOK_ADMIN_*` 값으로 admin 앱이 처음 시작할 때 만들어집니다.
 
 IDE에서 앱을 실행하는 방법은 각 서비스 README를 봅니다.
 
@@ -52,9 +55,22 @@ IDE에서 앱을 실행하는 방법은 각 서비스 README를 봅니다.
 
 ## 진행 단계
 
-1. 테이블 설계와 화면 흐름 확정 (FK 없는 설계, Flyway `V1__init.sql`)
-2. 프로젝트 뼈대 생성 (Gradle 멀티모듈 core/user/admin, 공통 설정, 예외 처리, Testcontainers)
-3. (다음) 도서 대출 서비스 구현 (도메인별로 엔티티 → 서비스 → API → 화면)
-4. ebook 커머스 서비스 구현
-5. Docker (앱 4개 compose 실행 완료), GitHub Actions 연결
-6. 확장: 서비스 간 통신 (대출 이력 기반 ebook 추천). library와 ebook이 API 또는 메시지로 통신하는 MSA 요소를 하나 추가
+모두 완료했습니다. 각 단계는 기능 단위 PR로 나눠 머지했고, PR마다 CI(빌드와 테스트)를 통과했습니다.
+
+1. ✅ 테이블 설계와 화면 흐름 (FK 없는 설계, Flyway 마이그레이션)
+2. ✅ 프로젝트 뼈대 (Gradle 멀티모듈 core/user/admin, 공통 설정, 예외 처리, Testcontainers)
+3. ✅ 도서 대출 서비스: 회원·인증(세션 + JWT), 국립중앙도서관 API로 도서 등록, 소장 자료, 검색, 대출·반납·연장·예약, 연체 정지, 정기 작업, 관리자 대출·회원·분류 관리
+4. ✅ ebook 커머스 서비스: 회원·인증, 전자책 관리(본문 업로드), 장바구니, 주문·결제(Mock PG), 내 서재·뷰어, 부분 환불, 리뷰, 관리자 주문·회원·매출 관리
+5. ✅ Docker(앱 4개 compose 실행), GitHub Actions CI, Swagger API 문서
+6. ✅ 서비스 간 통신: ebook 메인이 도서관 서비스의 인기 도서 API를 호출해 같은 ISBN의 전자책을 추천 (타임아웃, 캐시, 장애 시 fallback)
+
+## 주요 설계 포인트
+
+| 주제 | 내용 | 위치 |
+|---|---|---|
+| FK 없는 설계 | 참조 무결성은 서비스에서 확인, 참조 컬럼마다 인덱스 | `docs/01-rules.md` 1절 |
+| 동시성 | 남은 한 권 동시 대출(`@Version`), 같은 주문 동시 결제(비관적 락), 중복 생성(UNIQUE 제약) | 각 서비스 core 테스트 |
+| 외부 API | 국립중앙도서관 API: 타임아웃, 200 + 본문 오류 확인, 인증키를 로그에 남기지 않음 | library admin `book.client` |
+| 결제·환불 | PG 호출은 트랜잭션 밖에서, 반영은 주문을 잠근 뒤, 실패 시 보상(PG 취소) | ebook core `payment`, `order` |
+| 서비스 간 통신 | HTTP Interface, 짧은 타임아웃, 캐시, fallback | `docs/00-architecture.md` 6절 |
+| 인증 | 화면은 세션 + CSRF, API는 JWT(Access 30분 + Refresh 7일 교체·탈취 감지) | 각 서비스 user `global/security` |

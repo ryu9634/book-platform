@@ -1,0 +1,12 @@
+# 이 파일을 application-local.yml 로 복사해서 사용합니다. (application-local.yml 은 git에 올리지 않음)
+spring:
+  datasource:
+    password:   # 루트 .env의 EBOOK_DB_PASSWORD와 같은 값을 직접 넣습니다.
+  jpa:
+    properties:
+      hibernate:
+        format_sql: true
+
+logging:
+  level:
+    org.hibernate.SQL: debug

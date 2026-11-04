@@ -1,0 +1,3 @@
+rootProject.name = 'ebook-commerce-service'
+
+include 'ebook-core', 'ebook-user', 'ebook-admin'

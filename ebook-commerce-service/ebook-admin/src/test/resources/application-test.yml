@@ -1,0 +1,3 @@
+spring:
+  datasource:
+    password: unused  # Testcontainers가 접속 정보를 덮어씁니다.

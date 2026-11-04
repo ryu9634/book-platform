@@ -1,0 +1,3 @@
+rootProject.name = 'library-loan-service'
+
+include 'library-core', 'library-user', 'library-admin'

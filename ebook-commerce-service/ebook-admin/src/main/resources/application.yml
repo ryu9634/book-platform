@@ -1,0 +1,10 @@
+spring:
+  application:
+    name: ebook-admin
+  config:
+    import: classpath:application-core.yml
+  profiles:
+    default: local
+
+server:
+  port: 9082

@@ -36,6 +36,12 @@ class BookQueryServiceTest {
     @Mock
     CategoryRepository categoryRepository;
 
+    @Mock
+    com.ryu.library.loan.repository.LoanRepository loanRepository;
+
+    @Mock
+    java.time.Clock clock;
+
     @InjectMocks
     BookQueryService bookQueryService;
 

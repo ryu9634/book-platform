@@ -7,6 +7,8 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-webmvc'
 	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
 	implementation 'org.springframework.boot:spring-boot-starter-security'
+	// 도서관 서비스 API 호출(HTTP Interface + RestClient)
+	implementation 'org.springframework.boot:spring-boot-starter-restclient'
 	// API 문서(/swagger-ui.html). Boot 4용 springdoc 3.x
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.2.0'
 	// API의 JWT 서명과 검증은 리소스 서버 기능(Nimbus)을 HS256 대칭 키로 씁니다.
@@ -17,4 +19,6 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
 	testImplementation 'org.springframework.boot:spring-boot-starter-thymeleaf-test'
 	testImplementation 'org.springframework.boot:spring-boot-starter-security-test'
+	// 도서관 서비스 대신 실제 HTTP로 응답하는 가짜 서버. 정상, 오류, 지연을 재현합니다.
+	testImplementation 'org.wiremock:wiremock-standalone:3.13.2'
 }

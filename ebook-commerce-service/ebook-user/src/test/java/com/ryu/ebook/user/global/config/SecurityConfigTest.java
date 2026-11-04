@@ -52,6 +52,9 @@ class SecurityConfigTest {
     @MockitoBean
     com.ryu.ebook.user.ebook.service.EbookQueryService ebookQueryService;
 
+    @MockitoBean
+    com.ryu.ebook.user.library.service.LibraryRecommendationService libraryRecommendationService;
+
     private LoginMember loginMember(String rawPassword) {
         Member member = Member.create("reader01", passwordEncoder.encode(rawPassword), "홍길동", "reader01@example.com");
         return LoginMember.from(member);

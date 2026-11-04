@@ -10,6 +10,12 @@ server:
   port: 8082
 
 ebook:
+  # 도서관 서비스(library-user) API. Docker에서는 compose 서비스 이름으로 찾습니다(LIBRARY_API_URL).
+  library-api:
+    base-url: ${LIBRARY_API_URL:http://localhost:8081}
+    connect-timeout: 1s
+    read-timeout: 2s
+    cache-ttl: 5m
   jwt:
     # HS256 서명 키. 32바이트 이상. 값은 환경 변수(.env의 EBOOK_JWT_SECRET)로만 넣습니다.
     secret: ${EBOOK_JWT_SECRET:}

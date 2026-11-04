@@ -22,8 +22,8 @@
 - 같은 서비스의 user, admin 앱은 같은 스키마를 쓰고 core 모듈(엔티티, Repository, 마이그레이션)을 공유합니다.
 - DB는 Oracle 인스턴스 하나에 스키마 2개로 분리합니다.
   MacBook에서 Oracle 컨테이너 2개는 메모리 부담이 크고, 실무에서도 "인스턴스는 공유하고 스키마로 격리"하는 경우가 많습니다.
-- 두 서비스(library, ebook)는 서로 호출하지 않습니다. 회원 테이블도 각자 가집니다.
-  (나중에 "통합 로그인" 또는 "대출 이력 기반 ebook 추천"을 확장 과제로 붙일 수 있습니다.)
+- 두 서비스(library, ebook)는 DB를 공유하지 않고 회원 테이블도 각자 가집니다. 서로 필요한 정보는 공개 API로만 주고받습니다.
+  - 지금 있는 서비스 간 호출은 하나입니다: ebook 회원 앱 → library 회원 앱 `GET /api/v1/books/popular` (아래 6절)
 - 로컬 개발 방식은 두 가지입니다.
   - 기능 개발: Oracle만 Docker로 띄우고(`docker compose up -d`) 앱은 IDE나 `bootRun`으로 실행합니다.
   - 전체 실행: `docker compose --profile app up -d --build`로 Oracle과 앱 4개를 모두 컨테이너로 띄웁니다.
@@ -129,3 +129,22 @@ DB 설계, 엔티티, 계층, 예외, 트랜잭션, 테스트, Git 등 두 서�
 - 계정은 같은 MEMBER 테이블을 쓰고, admin 앱은 ROLE이 ADMIN인 회원만 로그인을 허용합니다. 일반 회원 아이디는 "없는 계정"과 똑같이 거부합니다.
 - 관리자 화면 로그인 URL은 `/admin/login`, 회원 화면은 `/login`입니다. 로그인 성공 처리와 실패 처리는 Spring Security 필터가 맡습니다.
 - API 인증 실패는 로그인 화면으로 보내지 않고 `ApiResponse` JSON(401 `C006`, 403 `C007`)으로 응답합니다.
+
+## 6. 서비스 간 통신 (ebook → library)
+
+ebook 메인 화면의 "도서관에서 많이 빌린 책, 전자책으로"는 도서관 서비스의 공개 API를 호출해 만듭니다.
+
+```
+ebook-user ── GET /api/v1/books/popular?limit=20 ──▶ library-user
+   │  (HTTP Interface + RestClient, 연결 1초 / 응답 2초 타임아웃)
+   │  ISBN이 같은 판매 중인 전자책만 남기고 도서관 순위대로 최대 8권
+   ▼
+ 결과를 5분 캐시 → 실패하면 마지막 성공 결과, 없으면 섹션을 숨김(fallback)
+```
+
+- 회원 계정은 서비스마다 따로라 개인별 추천이 아니라 "많이 빌린 책" 순위를 씁니다. 응답에는 회원 정보를 넣지 않습니다.
+- 주소는 설정(`ebook.library-api.base-url`, 환경 변수 `LIBRARY_API_URL`)으로만 바꿉니다. Docker compose에서는 서비스 이름 `http://library-user:8081`이 주소입니다.
+- 도서관 서비스가 느리거나 죽어도 ebook 메인은 뜹니다. 다른 서비스 장애가 내 서비스로 번지지 않게 하는 것이 목적입니다.
+- 테스트는 WireMock으로 정상, 500, 응답 지연(타임아웃), 캐시를 재현합니다.
+- API 응답 형식을 바꾸면 ebook의 `LibraryBookClient`도 함께 바꿔야 합니다. 서비스가 늘어나면 계약 테스트(Pact, Spring Cloud Contract)로 이 약속을 자동 검증하는 것이 다음 단계입니다.
+

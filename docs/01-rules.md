@@ -31,7 +31,12 @@
 - 제약과 인덱스 이름은 `PK_{테이블}`, `UK_{테이블}_{컬럼}`, `CK_{테이블}_{컬럼}`, `IDX_{테이블}_{컬럼}`.
 - PK는 모두 `{테이블명}_ID NUMBER(19)`, 시퀀스는 `{테이블명}_SEQ`(INCREMENT BY 50).
   JPA는 `@SequenceGenerator(allocationSize = 50)`으로 insert 시 시퀀스 호출 횟수를 줄입니다.
-- PK에 UUID를 쓰지 않습니다. 이유는 루트 `README.md`의 "설계 결정"에 있습니다.
+- PK에 UUID를 쓰지 않습니다. 이유는 네 가지입니다.
+  - Oracle에는 UUID 타입이 없어 `RAW(16)`이나 `VARCHAR2(36)`으로 저장해야 합니다. 조회할 때 읽기 어렵거나 저장 공간이 커집니다.
+  - 랜덤 UUID는 B-tree 인덱스의 아무 위치에나 들어가 인덱스 분할과 단편화가 생깁니다.
+    FK를 쓰지 않는 대신 참조 컬럼마다 인덱스를 만들기 때문에, 키가 커지면 이 인덱스들도 모두 커집니다.
+  - JPA에서 ID를 미리 만들어 넣으면 `save()`가 `merge()`로 동작해 SELECT가 한 번 더 나갑니다.
+  - ID를 추측해 남의 데이터에 접근하는 문제는 서비스에서 로그인 회원과 데이터 소유자를 비교해 막습니다.
   외부에 숫자 ID를 숨겨야 하는 테이블이 생기면 PK는 그대로 두고 노출용 `{테이블}_KEY VARCHAR2(36) UNIQUE` 컬럼만 추가합니다.
 - 모든 테이블에 `CREATED_AT`, `UPDATED_AT TIMESTAMP NOT NULL` (BaseTimeEntity + JPA Auditing).
 - 문자열은 `VARCHAR2(n CHAR)`로 선언해 한글 바이트 수 문제를 피합니다.

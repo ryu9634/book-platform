@@ -14,6 +14,7 @@ import com.ryu.ebook.user.ebook.dto.EbookDetailResponse;
 import com.ryu.ebook.user.ebook.dto.EbookSort;
 import com.ryu.ebook.user.ebook.dto.EbookSummaryResponse;
 import com.ryu.ebook.user.ebook.dto.PurchaseState;
+import java.util.Collection;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
@@ -62,6 +63,19 @@ public class EbookQueryService {
                 .searchIncludingDescription(EnumSet.of(EbookStatus.ON_SALE), normalized, categoryId, pageable)
                 .map(ebook -> EbookSummaryResponse.of(ebook, categoryNames.get(ebook.getCategoryId())))
                 .getContent();
+    }
+
+    // 챗봇이 추천한 책을 ID로 다시 읽습니다. 그 사이 숨김으로 바뀐 책은 보여 주지 않습니다.
+    public Map<Long, EbookSummaryResponse> summariesById(Collection<Long> ebookIds) {
+        if (ebookIds.isEmpty()) {
+            return Map.of();
+        }
+        Map<Long, String> categoryNames = categoryNames();
+        return ebookRepository.findAllById(ebookIds).stream()
+                .filter(ebook -> !ebook.isHidden())
+                .collect(Collectors.toMap(Ebook::getId,
+                        ebook -> EbookSummaryResponse.of(ebook, categoryNames.get(ebook.getCategoryId())),
+                        (a, b) -> a));
     }
 
     public List<EbookSummaryResponse> bestsellers() {

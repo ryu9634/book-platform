@@ -26,15 +26,12 @@
              th:classappend="${message.fromUser()} ? 'chat-mine' : 'chat-bot'">
             <span class="chat-who" th:text="${message.fromUser()} ? '나' : 'AI'">AI</span>
             <p class="chat-text" th:text="${message.content()}">내용</p>
+            <ul class="cards" th:if="${!#lists.isEmpty(message.recommendedBooks())}">
+                <li th:each="book : ${message.recommendedBooks()}"
+                    th:replace="~{fragments/ebook-card :: card(${book})}"></li>
+            </ul>
             <span class="muted" th:text="${#temporals.format(message.createdAt(), 'MM-dd HH:mm')}">11-08 10:00</span>
         </div>
-    </div>
-
-    <div th:if="${recommendedBooks != null and !#lists.isEmpty(recommendedBooks)}">
-        <h2>답변에 나온 전자책</h2>
-        <ul class="cards">
-            <li th:each="book : ${recommendedBooks}" th:replace="~{fragments/ebook-card :: card(${book})}"></li>
-        </ul>
     </div>
 
     <form class="form" th:action="@{/chat/messages}" th:object="${chatQuestionForm}" method="post">

@@ -3,10 +3,8 @@ package com.ryu.ebook.user.chat.controller;
 import com.ryu.ebook.global.exception.BusinessException;
 import com.ryu.ebook.user.chat.dto.ChatQuestionForm;
 import com.ryu.ebook.user.chat.service.ChatService;
-import com.ryu.ebook.user.ebook.dto.EbookSummaryResponse;
 import com.ryu.ebook.user.global.security.LoginMember;
 import jakarta.validation.Valid;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -44,12 +42,8 @@ public class ChatViewController {
             return "chat/chat";
         }
         try {
-            List<EbookSummaryResponse> books = chatService.ask(loginMember.getMemberId(),
-                    chatQuestionForm.getQuestion());
-            if (!books.isEmpty()) {
-                // 방금 받은 답변에만 붙는 카드라서 flash로 한 번만 넘깁니다(새로 고치면 사라집니다).
-                redirectAttributes.addFlashAttribute("recommendedBooks", books);
-            }
+            // 답변과 추천 도서는 저장되므로 화면은 리다이렉트 후 대화를 다시 읽어 그립니다.
+            chatService.ask(loginMember.getMemberId(), chatQuestionForm.getQuestion());
         } catch (BusinessException e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         }

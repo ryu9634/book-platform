@@ -69,13 +69,16 @@ class ChatServiceTest {
                         List.of(recommended, notMentioned)));
 
         // when
-        List<EbookSummaryResponse> books = chatService.ask(MEMBER_ID, "  자바 책 추천해 줘  ");
+        var answer = chatService.ask(MEMBER_ID, "  자바 책 추천해 줘  ");
 
         // then
-        assertThat(books).extracting(EbookSummaryResponse::title).containsExactly("이펙티브 자바");
+        assertThat(answer.answer()).isEqualTo("이펙티브 자바를 권합니다.");
+        assertThat(answer.recommendedBooks()).extracting(EbookSummaryResponse::title).containsExactly("이펙티브 자바");
         verify(chatQuotaService).ensureAvailable(MEMBER_ID);
         verify(chatQuotaService).record(MEMBER_ID, usage);
-        verify(chatSessionService).appendExchange(any(), eq("자바 책 추천해 줘"), eq("이펙티브 자바를 권합니다."), eq(usage));
+        // 추천한 책은 답변 메시지에 묶여 저장됩니다(화면과 API가 같은 결과를 보여 주도록).
+        verify(chatSessionService).appendExchange(any(), eq("자바 책 추천해 줘"), eq("이펙티브 자바를 권합니다."),
+                eq(usage), eq(List.of(1L)));
     }
 
     @Test
@@ -123,7 +126,7 @@ class ChatServiceTest {
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode").isEqualTo(ErrorCode.CHAT_ANSWER_REJECTED);
         verify(chatQuotaService).record(MEMBER_ID, usage);
-        verify(chatSessionService, never()).appendExchange(any(), any(), any(), any());
+        verify(chatSessionService, never()).appendExchange(any(), any(), any(), any(), any());
     }
 
     @Test
@@ -141,7 +144,7 @@ class ChatServiceTest {
 
         // then
         verify(chatSessionService).appendExchange(any(), eq("길게 설명해 줘"),
-                org.mockito.ArgumentMatchers.contains("여기서 끊었습니다"), any());
+                org.mockito.ArgumentMatchers.contains("여기서 끊었습니다"), any(), any());
     }
 
     @Test

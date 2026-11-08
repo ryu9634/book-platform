@@ -154,3 +154,7 @@ body > .error-page { max-width: 480px; margin-top: 96px; text-align: center; }
     .cards { grid-template-columns: repeat(2, 1fr); gap: 12px; }
     .table { display: block; overflow-x: auto; }
 }
+
+/* 챗봇 프롬프트 이력 본문 */
+.chat-text { margin: 0; max-width: 520px; max-height: 160px; overflow: auto; white-space: pre-wrap;
+  font-family: inherit; font-size: 13px; line-height: 1.5; }

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/default}">
+<head>
+    <title>챗봇 계정 설정</title>
+</head>
+<body>
+<section layout:fragment="content">
+    <p th:if="${message}" class="alert" th:text="${message}">처리 결과</p>
+    <p th:if="${errorMessage}" class="alert error" th:text="${errorMessage}">오류</p>
+    <h1>챗봇 계정 설정</h1>
+    <p class="hint">계정마다 챗봇 사용 여부와 하루에 쓸 수 있는 토큰 수를 정합니다. 한도를 비워 두면 전역 기본값을 따릅니다.</p>
+    <form th:action="@{/admin/chat-members}" method="get" class="search">
+        <input type="text" name="keyword" th:value="${keyword}" placeholder="아이디, 이름, 이메일">
+        <button type="submit">검색</button>
+    </form>
+    <p th:if="${page.totalElements == 0}" class="muted">회원이 없습니다.</p>
+    <table class="table" th:if="${page.totalElements > 0}">
+        <thead>
+        <tr><th>아이디</th><th>이름</th><th>상태</th><th>오늘 사용</th><th>적용 한도</th><th>사용 여부</th><th>일일 한도</th><th></th></tr>
+        </thead>
+        <tbody>
+        <tr th:each="row : ${page.content}">
+            <td th:text="${row.loginId()}">reader01</td>
+            <td th:text="${row.name()}">홍길동</td>
+            <td th:text="${row.active()} ? '정상' : '탈퇴'">정상</td>
+            <td th:text="${#numbers.formatInteger(row.usedToday(), 1, 'COMMA')}">0</td>
+            <td th:text="${#numbers.formatInteger(row.effectiveLimit(), 1, 'COMMA')}">20,000</td>
+            <td colspan="3">
+                <form th:action="@{/admin/chat-members/{id}(id=${row.memberId()})}" method="post" class="inline">
+                    <input type="hidden" name="keyword" th:value="${keyword}">
+                    <label>
+                        <input type="checkbox" name="chatEnabled" value="true" th:checked="${row.chatEnabled()}">
+                        사용
+                    </label>
+                    <input type="number" name="dailyTokenLimit" min="0" step="1000" style="width: 120px"
+                           th:value="${row.dailyTokenLimit()}" placeholder="기본값">
+                    <button type="submit" class="link">저장</button>
+                </form>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+    <nav class="pager" th:if="${page.totalPages > 1}">
+        <a th:if="${page.hasPrevious()}"
+           th:href="@{/admin/chat-members(page=${page.number - 1}, keyword=${keyword})}">이전</a>
+        <span th:text="|${page.number + 1} / ${page.totalPages}|">1 / 1</span>
+        <a th:if="${page.hasNext()}"
+           th:href="@{/admin/chat-members(page=${page.number + 1}, keyword=${keyword})}">다음</a>
+    </nav>
+</section>
+</body>
+</html>

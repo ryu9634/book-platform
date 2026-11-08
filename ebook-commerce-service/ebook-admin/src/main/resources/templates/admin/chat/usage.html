@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/default}">
+<head>
+    <title>챗봇 사용량</title>
+</head>
+<body>
+<section layout:fragment="content">
+    <p th:if="${message}" class="alert" th:text="${message}">처리 결과</p>
+    <p th:if="${errorMessage}" class="alert error" th:text="${errorMessage}">오류</p>
+    <h1>챗봇 사용량</h1>
+
+    <div class="card">
+        <h2>전체 설정</h2>
+        <p class="hint">비용이 튀거나 키가 샜을 때는 사용을 끄면 회원 화면에서 바로 막힙니다. 다시 배포할 필요가 없습니다.</p>
+        <form class="form inline" th:action="@{/admin/chat-usage/settings}" th:object="${chatSettingForm}"
+              method="post">
+            <label>
+                <input type="checkbox" th:field="*{enabled}">
+                챗봇 사용
+            </label>
+            <label for="defaultDailyTokenLimit">기본 일일 한도</label>
+            <input id="defaultDailyTokenLimit" type="number" min="0" step="1000" th:field="*{defaultDailyTokenLimit}">
+            <label for="globalDailyTokenLimit">전체 일일 한도</label>
+            <input id="globalDailyTokenLimit" type="number" min="0" step="10000" th:field="*{globalDailyTokenLimit}">
+            <button type="submit" class="button">저장</button>
+        </form>
+        <p class="field-error" th:if="${#fields.hasErrors('defaultDailyTokenLimit')}"
+           th:errors="*{defaultDailyTokenLimit}">오류</p>
+        <p class="field-error" th:if="${#fields.hasErrors('globalDailyTokenLimit')}"
+           th:errors="*{globalDailyTokenLimit}">오류</p>
+    </div>
+
+    <form th:action="@{/admin/chat-usage}" method="get" class="search">
+        <input type="date" name="date" th:value="${date}">
+        <button type="submit">조회</button>
+    </form>
+
+    <p class="stats">
+        <span th:text="|총 ${#numbers.formatInteger(summary.totalTokens(), 1, 'COMMA')} 토큰|">총 토큰</span> ·
+        <span th:text="|질문 ${#numbers.formatInteger(summary.requestCount(), 1, 'COMMA')}건|">질문</span> ·
+        <span th:text="|추정 비용 $${#numbers.formatDecimal(summary.estimatedUsd(), 1, 4)}|">추정 비용</span> ·
+        <span th:text="|전체 한도의 ${summary.usedPercent()}%|">전체 한도</span>
+    </p>
+
+    <p th:if="${page.totalElements == 0}" class="muted">이 날짜에는 사용 기록이 없습니다.</p>
+    <table class="table" th:if="${page.totalElements > 0}">
+        <thead>
+        <tr><th>아이디</th><th>이름</th><th>입력</th><th>출력</th><th>캐시</th><th>질문</th><th>합계</th><th>추정 비용</th></tr>
+        </thead>
+        <tbody>
+        <tr th:each="row : ${page.content}">
+            <td th:text="${row.loginId()}">reader01</td>
+            <td th:text="${row.memberName()}">홍길동</td>
+            <td th:text="${#numbers.formatInteger(row.inputTokens(), 1, 'COMMA')}">0</td>
+            <td th:text="${#numbers.formatInteger(row.outputTokens(), 1, 'COMMA')}">0</td>
+            <td th:text="${#numbers.formatInteger(row.cacheTokens(), 1, 'COMMA')}">0</td>
+            <td th:text="${row.requestCount()}">0</td>
+            <td th:text="${#numbers.formatInteger(row.totalTokens(), 1, 'COMMA')}">0</td>
+            <td th:text="|$${#numbers.formatDecimal(row.estimatedUsd(), 1, 4)}|">$0.0000</td>
+        </tr>
+        </tbody>
+    </table>
+    <nav class="pager" th:if="${page.totalPages > 1}">
+        <a th:if="${page.hasPrevious()}"
+           th:href="@{/admin/chat-usage(page=${page.number - 1}, date=${date})}">이전</a>
+        <span th:text="|${page.number + 1} / ${page.totalPages}|">1 / 1</span>
+        <a th:if="${page.hasNext()}" th:href="@{/admin/chat-usage(page=${page.number + 1}, date=${date})}">다음</a>
+    </nav>
+</section>
+</body>
+</html>

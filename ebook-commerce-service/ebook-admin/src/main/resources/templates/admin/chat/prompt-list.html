@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/default}">
+<head>
+    <title>챗봇 프롬프트</title>
+</head>
+<body>
+<section layout:fragment="content">
+    <p th:if="${message}" class="alert" th:text="${message}">처리 결과</p>
+    <p th:if="${errorMessage}" class="alert error" th:text="${errorMessage}">오류</p>
+    <h1>챗봇 프롬프트</h1>
+    <p class="hint">회원이 보내는 질문 앞에 항상 붙는 지시문입니다. 고치면 진행 중인 대화에도 바로 반영됩니다.</p>
+    <table class="table">
+        <thead><tr><th>키</th><th>이름</th><th>상태</th><th>마지막 수정</th><th></th></tr></thead>
+        <tbody>
+        <tr th:each="prompt : ${prompts}">
+            <td th:text="${prompt.promptKey()}">BOOK_RECOMMEND</td>
+            <td><a th:href="@{/admin/chat-prompts/{id}(id=${prompt.id()})}" th:text="${prompt.name()}">이름</a></td>
+            <td th:text="${prompt.statusLabel()}">사용</td>
+            <td th:text="${#temporals.format(prompt.updatedAt(), 'yyyy-MM-dd HH:mm')}">2026-11-08 10:00</td>
+            <td>
+                <form th:action="@{/admin/chat-prompts/{id}/enabled(id=${prompt.id()})}" method="post" class="inline">
+                    <input type="hidden" name="enabled" th:value="${!prompt.enabled()}">
+                    <button type="submit" class="link" th:text="${prompt.enabled()} ? '중단' : '사용'">중단</button>
+                </form>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</section>
+</body>
+</html>

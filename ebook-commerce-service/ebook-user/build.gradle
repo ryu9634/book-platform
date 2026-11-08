@@ -9,6 +9,9 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 	// 도서관 서비스 API 호출(HTTP Interface + RestClient)
 	implementation 'org.springframework.boot:spring-boot-starter-restclient'
+	// AI 도서 추천 챗봇. Spring AI 2.0.x가 Spring Boot 4.1에 맞는 라인입니다(2.1.x는 Boot 4.2 기준).
+	implementation platform('org.springframework.ai:spring-ai-bom:2.0.2')
+	implementation 'org.springframework.ai:spring-ai-starter-model-anthropic'
 	// API 문서(/swagger-ui.html). Boot 4용 springdoc 3.x
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.2.0'
 	// API의 JWT 서명과 검증은 리소스 서버 기능(Nimbus)을 HS256 대칭 키로 씁니다.

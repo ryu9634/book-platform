@@ -12,6 +12,10 @@
 | 내 서재 (BOOKSHELF) | 결제 완료로 얻은 소유권. 회원당 전자책 1개 |
 | 리뷰 (REVIEW) | 구매한 회원만 작성, 전자책당 1개 |
 | 쿠폰 (COUPON, MEMBER_COUPON) | v2. 처음엔 테이블만 만들고 로직은 나중에 |
+| AI 추천 대화 (CHAT_SESSION, CHAT_MESSAGE) | 회원당 진행 중 대화 1개. 메시지는 다음 요청에 다시 실어 보낼 기억이면서 화면 이력 |
+| 챗봇 프롬프트 (CHAT_PROMPT, CHAT_PROMPT_HISTORY) | 관리자가 고치는 시스템 프롬프트와 바뀌기 전 본문 |
+| 챗봇 설정 (CHAT_SETTING, MEMBER_CHAT_SETTING) | 전체 중단 스위치·기본 한도와 계정별 사용 여부·일일 한도 |
+| 토큰 사용량 (CHAT_TOKEN_USAGE_DAILY) | 회원·날짜별 토큰 누적. 날짜마다 행이 생기므로 자정 초기화 배치가 없다 |
 
 종이책 커머스와 다른 점: 재고와 배송이 없습니다. 대신 "소유권"과 "다운로드/열람"이 핵심이고,
 같은 책을 두 번 사지 못하게 막는 것, 환불 시 서재에서 회수하는 것이 비즈니스 규칙의 중심입니다.
@@ -40,6 +44,11 @@ erDiagram
     COUPON ||--o{ MEMBER_COUPON : "발급"
     MEMBER ||--o{ MEMBER_COUPON : "보유"
     MEMBER_COUPON |o--o| ORDERS : "사용"
+    MEMBER ||--o{ CHAT_SESSION : "대화"
+    CHAT_SESSION ||--o{ CHAT_MESSAGE : "구성"
+    MEMBER ||--o| MEMBER_CHAT_SETTING : "챗봇 설정"
+    MEMBER ||--o{ CHAT_TOKEN_USAGE_DAILY : "사용량"
+    CHAT_PROMPT ||--o{ CHAT_PROMPT_HISTORY : "변경 이력"
 
     MEMBER {
         NUMBER MEMBER_ID PK
@@ -163,6 +172,60 @@ erDiagram
         VARCHAR2 STATUS "AVAILABLE, USED, EXPIRED"
         TIMESTAMP USED_AT
     }
+    CHAT_PROMPT {
+        NUMBER CHAT_PROMPT_ID PK
+        VARCHAR2 PROMPT_KEY UK "용도 구분, 예 BOOK_RECOMMEND"
+        VARCHAR2 NAME
+        CLOB CONTENT "시스템 프롬프트 본문"
+        NUMBER ENABLED "0, 1"
+        NUMBER UPDATED_BY "→ MEMBER, 마지막으로 고친 관리자"
+    }
+    CHAT_PROMPT_HISTORY {
+        NUMBER CHAT_PROMPT_HISTORY_ID PK
+        NUMBER CHAT_PROMPT_ID "→ CHAT_PROMPT"
+        CLOB CONTENT "바뀌기 전 본문"
+        NUMBER CHANGED_BY "→ MEMBER"
+    }
+    CHAT_SETTING {
+        NUMBER CHAT_SETTING_ID PK "항상 1 (CHECK로 강제)"
+        NUMBER ENABLED "0이면 전체 중단"
+        NUMBER DEFAULT_DAILY_TOKEN_LIMIT
+        NUMBER GLOBAL_DAILY_TOKEN_LIMIT
+    }
+    CHAT_SESSION {
+        NUMBER CHAT_SESSION_ID PK
+        NUMBER MEMBER_ID "→ MEMBER"
+        VARCHAR2 TITLE "첫 질문을 줄인 제목"
+        VARCHAR2 STATUS "ACTIVE, CLOSED"
+        NUMBER MESSAGE_COUNT
+        TIMESTAMP LAST_MESSAGE_AT
+    }
+    CHAT_MESSAGE {
+        NUMBER CHAT_MESSAGE_ID PK
+        NUMBER CHAT_SESSION_ID "→ CHAT_SESSION"
+        NUMBER SEQ_NO "세션 안 순서, (SESSION_ID, SEQ_NO) UK"
+        VARCHAR2 ROLE "USER, ASSISTANT"
+        CLOB CONTENT
+        NUMBER INPUT_TOKENS "답변에만 채움"
+        NUMBER OUTPUT_TOKENS
+    }
+    MEMBER_CHAT_SETTING {
+        NUMBER MEMBER_CHAT_SETTING_ID PK
+        NUMBER MEMBER_ID UK "→ MEMBER"
+        NUMBER CHAT_ENABLED "0, 1"
+        NUMBER DAILY_TOKEN_LIMIT "NULL이면 기본 한도를 따름"
+        NUMBER UPDATED_BY "→ MEMBER, 설정을 바꾼 관리자"
+    }
+    CHAT_TOKEN_USAGE_DAILY {
+        NUMBER CHAT_TOKEN_USAGE_DAILY_ID PK
+        NUMBER MEMBER_ID "→ MEMBER, (MEMBER_ID, USAGE_DATE) UK"
+        DATE USAGE_DATE
+        NUMBER INPUT_TOKENS
+        NUMBER OUTPUT_TOKENS
+        NUMBER CACHE_CREATE_TOKENS "단가가 달라 따로 셈"
+        NUMBER CACHE_READ_TOKENS
+        NUMBER REQUEST_COUNT
+    }
 ```
 
 ## 3. 애그리거트와 JPA 참조 방식
@@ -185,9 +248,19 @@ erDiagram
 | Review | REVIEW | EBOOK_ID, MEMBER_ID | `Long ebookId`, `Long memberId` |
 | Coupon | COUPON | | |
 | MemberCoupon | MEMBER_COUPON | COUPON_ID, MEMBER_ID | `Long couponId`, `Long memberId` |
+| ChatPrompt | CHAT_PROMPT | | 본문은 `@Lob String` (CLOB) |
+| ChatPromptHistory | CHAT_PROMPT_HISTORY | CHAT_PROMPT_ID → CHAT_PROMPT | `Long chatPromptId` |
+| ChatSetting | CHAT_SETTING | | 행이 하나뿐이라 ID를 1로 고정하고 시퀀스를 두지 않습니다 |
+| ChatSession | CHAT_SESSION | MEMBER_ID → MEMBER | `Long memberId` |
+| ChatMessage | CHAT_MESSAGE | CHAT_SESSION_ID → CHAT_SESSION | `Long chatSessionId` (예외: 아래 설명) |
+| MemberChatSetting | MEMBER_CHAT_SETTING | MEMBER_ID → MEMBER | `Long memberId` |
+| ChatTokenUsageDaily | CHAT_TOKEN_USAGE_DAILY | MEMBER_ID → MEMBER | `Long memberId` |
 
 - 객체 참조(`@ManyToOne`)에는 모두 `@ForeignKey(ConstraintMode.NO_CONSTRAINT)`를 붙입니다.
 - 다른 애그리거트 데이터가 필요한 목록(예: 내 서재의 전자책 제목과 표지)은 JPQL 조인(`join Ebook e on e.id = b.ebookId`)과 DTO Projection으로 한 번에 조회합니다.
+- **예외: CHAT_SESSION → CHAT_MESSAGE.** 세션 없이 존재할 수 없는 자식이라 규칙대로라면 객체 참조와 `cascade`를 써야 하지만 ID 참조로 뒀습니다.
+  대화가 길어지면 메시지가 수백 건까지 늘고, 쓰는 쪽은 언제나 "마지막 순번"과 "최근 N건"뿐이어서 컬렉션으로 들고 있을 이유가 없습니다.
+  세션을 지울 때는 `deleteByChatSessionId`로 한 번에 지웁니다. 이 이유는 엔티티 주석에도 적어 두었습니다.
 
 ## 4. 테이블 상세 (핵심 테이블만)
 
@@ -230,6 +303,16 @@ erDiagram
 ### REVIEW
 - (EBOOK_ID, MEMBER_ID) 유니크. BOOKSHELF에 활성 행이 있는 회원만 작성 가능.
 
+### 챗봇 테이블
+| 컬럼 | 타입 | 설명 |
+|---|---|---|
+| CHAT_PROMPT.CONTENT | CLOB | 질문마다 입력 토큰으로 나가므로 애플리케이션에서 길이를 1만 자로 제한 |
+| CHAT_SESSION.STATUS | VARCHAR2(20) | ACTIVE는 회원당 하나. 새 대화를 시작하면 이전 세션을 CLOSED로 바꾼다 |
+| CHAT_MESSAGE.SEQ_NO | NUMBER(10) | 세션 안 순서. (CHAT_SESSION_ID, SEQ_NO) UNIQUE가 순번 중복을 막고 참조 컬럼 인덱스 역할도 한다 |
+| CHAT_MESSAGE.CONTENT | CLOB | 사람이 읽는 질문·답변만 저장. 도구 호출 블록과 추론(thinking) 블록은 저장하지 않는다 |
+| MEMBER_CHAT_SETTING.DAILY_TOKEN_LIMIT | NUMBER(12) | NULL이면 CHAT_SETTING의 기본 한도를 따른다. 행이 없는 회원도 기본값을 쓰므로 가입할 때 만들지 않는다 |
+| CHAT_TOKEN_USAGE_DAILY | | 네 종류 토큰을 따로 센다(입력·출력·캐시 쓰기·캐시 읽기). 단가가 서로 달라 합쳐 두면 비용을 계산할 수 없다 |
+
 ## 5. 비즈니스 규칙
 
 | 규칙 | 검증 위치 |
@@ -243,6 +326,11 @@ erDiagram
 | 환불 시: ORDER_ITEM REFUNDED, BOOKSHELF 비활성, SALES_COUNT -1, 전 항목 환불이면 ORDERS REFUNDED, PAYMENT CANCELED | |
 | PENDING 주문은 30분 지나면 CANCELED (스케줄러) | OrderScheduler |
 | 리뷰는 구매자만, 1인 1개, 수정 가능 | ReviewService |
+| 챗봇은 전체 스위치가 켜져 있고, 계정이 허용되고, 계정·전체 일일 한도가 남아 있을 때만 쓸 수 있다 | ChatQuotaService.ensureAvailable() |
+| 토큰은 모델 호출 뒤에 기록한다. 거절·중단된 응답도 토큰을 썼으므로 기록한다 | ChatService.ask() |
+| 추천 후보는 판매 중(ON_SALE)인 전자책만. 숨긴 책과 판매 중지 책은 모델에 보여 주지 않는다 | EbookQueryService.searchForRecommendation() |
+| 보유 도서 조회는 도구 인자가 아니라 ToolContext의 회원 번호로 한다(모델이 남의 서재를 볼 수 없게) | EbookSearchTools |
+| 한 질문에 허용하는 검색 횟수와 질문 사이 최소 간격이 있다 | ChatToolSession, ChatService.ensureNotTooFast() |
 
 ## 6. 상태 전이
 
@@ -266,6 +354,10 @@ EBOOK   : ON_SALE ◀──▶ STOP_SALE,  ON_SALE/STOP_SALE ──▶ HIDDEN
   주문 항목의 전자책 정보는 스냅샷 컬럼을 쓰므로 EBOOK을 조회하지 않습니다.
   내 서재 (BOOKSHELF → EBOOK)는 ID 참조라 JPQL 조인 + DTO Projection으로 조회합니다.
 
+- 챗봇 토큰 사용량은 같은 회원이 동시에 물어도 값이 덮어쓰이지 않아야 합니다.
+  행이 없으면 만들고 있으면 더하는 것을 Oracle `MERGE` 한 문장으로 처리해, UNIQUE 충돌을 잡아 재시도하는 코드를 두지 않았습니다.
+- 모델 호출은 외부 호출이라 트랜잭션 밖에서 합니다. 그래서 `ChatService`에는 `@Transactional`이 없고, 저장만 `ChatSessionService`의 트랜잭션에 맡깁니다.
+
 ## 8. 확장 아이디어 (v2)
 
 - 쿠폰 적용 (테이블은 v1에 포함, 로직은 v2)
@@ -273,3 +365,4 @@ EBOOK   : ON_SALE ◀──▶ STOP_SALE,  ON_SALE/STOP_SALE ──▶ HIDDEN
 - 전자책 파일 S3 업로드와 서명된 URL 다운로드
 - 다운로드 로그, 위시리스트, 검색 엔진 연동
 - 대출 서비스와 연계: 도서관에서 빌렸던 책을 ebook으로 추천
+- 챗봇: 프롬프트 캐싱(시스템 프롬프트와 도구 정의는 매 요청 같으므로), 답변 스트리밍(SSE), 임베딩 벡터 검색(Oracle 23 VECTOR), 추천 도서를 메시지에 묶어 두는 링크 테이블

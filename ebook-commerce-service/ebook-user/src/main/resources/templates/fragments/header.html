@@ -7,6 +7,7 @@
         <nav>
             <a th:href="@{/ebooks}">전자책</a>
             <th:block th:if="${loginName != null}">
+                <a th:href="@{/chat}">AI 추천</a>
                 <a th:href="@{/cart}">장바구니</a>
                 <a th:href="@{/bookshelf}">내 서재</a>
                 <a th:href="@{/orders}">주문 내역</a>

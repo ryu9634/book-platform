@@ -6,6 +6,11 @@ spring:
     properties:
       hibernate:
         format_sql: true
+  # AI 도서 추천 챗봇이 쓰는 Anthropic API 키. 루트 .env의 EBOOK_ANTHROPIC_API_KEY와 같은 값을 직접 넣습니다.
+  # 비워 두면 챗봇 화면만 쓰지 못하고 나머지 기능은 그대로 동작합니다.
+  ai:
+    anthropic:
+      api-key:
 
 # API JWT 서명 키. 루트 .env의 EBOOK_JWT_SECRET과 같은 값을 직접 넣습니다.
 ebook:

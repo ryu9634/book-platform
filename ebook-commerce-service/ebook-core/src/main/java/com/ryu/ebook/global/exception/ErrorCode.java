@@ -61,9 +61,23 @@ public enum ErrorCode {
     // 리뷰 (RV)
     REVIEW_NOT_ALLOWED(HttpStatus.FORBIDDEN, "RV001", "구매한 회원만 리뷰를 쓸 수 있습니다."),
     DUPLICATE_REVIEW(HttpStatus.CONFLICT, "RV002", "이미 리뷰를 쓴 전자책입니다. 기존 리뷰를 수정해 주세요."),
-    REVIEW_NOT_FOUND(HttpStatus.NOT_FOUND, "RV003", "리뷰를 찾을 수 없습니다.");
+    REVIEW_NOT_FOUND(HttpStatus.NOT_FOUND, "RV003", "리뷰를 찾을 수 없습니다."),
 
-    // 도메인 에러 코드는 기능을 만들 때 도메인별 접두사로 추가합니다. (E 전자책, CT 장바구니, O 주문, P 결제, S 서재, RV 리뷰)
+    // AI 도서 추천 챗봇 (CB)
+    CHATBOT_SUSPENDED(HttpStatus.SERVICE_UNAVAILABLE, "CB001", "AI 도서 추천을 잠시 중단했습니다. 나중에 다시 시도해 주세요."),
+    CHATBOT_DISABLED(HttpStatus.FORBIDDEN, "CB002", "이 계정은 AI 도서 추천을 쓸 수 없습니다."),
+    CHAT_DAILY_LIMIT_EXCEEDED(HttpStatus.TOO_MANY_REQUESTS, "CB003",
+            "오늘 쓸 수 있는 AI 추천 분량을 모두 썼습니다. 내일 다시 이용해 주세요."),
+    CHAT_TOO_MANY_REQUESTS(HttpStatus.TOO_MANY_REQUESTS, "CB004", "질문이 너무 빠릅니다. 잠시 후 다시 보내 주세요."),
+    CHAT_SESSION_NOT_FOUND(HttpStatus.NOT_FOUND, "CB005", "대화를 찾을 수 없습니다."),
+    CHAT_PROMPT_NOT_FOUND(HttpStatus.NOT_FOUND, "CB006", "챗봇 프롬프트를 찾을 수 없습니다."),
+    CHAT_SETTING_NOT_FOUND(HttpStatus.NOT_FOUND, "CB007", "챗봇 설정을 찾을 수 없습니다."),
+    CHAT_NOT_CONFIGURED(HttpStatus.SERVICE_UNAVAILABLE, "CB008", "AI 도서 추천이 아직 설정되지 않았습니다."),
+    CHAT_ANSWER_FAILED(HttpStatus.SERVICE_UNAVAILABLE, "CB009", "AI 응답을 받지 못했습니다. 잠시 후 다시 시도해 주세요."),
+    CHAT_ANSWER_REJECTED(HttpStatus.BAD_REQUEST, "CB010", "이 질문에는 답할 수 없습니다. 도서와 관련된 내용을 물어봐 주세요.");
+
+    // 도메인 에러 코드는 기능을 만들 때 도메인별 접두사로 추가합니다.
+    // (E 전자책, CT 장바구니, O 주문, P 결제, S 서재, RV 리뷰, CB 챗봇)
 
     private final HttpStatus status;
     private final String code;

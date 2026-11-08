@@ -79,6 +79,10 @@ flowchart LR
 | 20 | 주문 상세(관리자) | GET `/admin/orders/{orderNo}` | ADMIN | 결제 정보, 강제 환불 |
 | 21 | 회원 관리 | GET `/admin/members` | ADMIN | 조회, 탈퇴 처리 |
 | 22 | 매출 요약 | GET `/admin/sales?month=` | ADMIN | 월별 매출, 카테고리별, 상위 전자책 (집계 쿼리) |
+| 23 | AI 도서 추천 | GET `/chat`, POST `/chat/messages`, POST `/chat/new` | USER | 대화 이력, 질문 입력(500자), 오늘 남은 사용량, 답변에 제목이 나온 전자책 카드 |
+| 24 | 챗봇 프롬프트 | GET `/admin/chat-prompts`, GET/POST `/admin/chat-prompts/{id}` | ADMIN | 시스템 프롬프트 수정, 변경 이력, 사용/중단 |
+| 25 | 챗봇 계정 설정 | GET `/admin/chat-members`, POST `/admin/chat-members/{memberId}` | ADMIN | 계정별 사용 여부와 일일 토큰 한도, 오늘 사용량 |
+| 26 | 챗봇 사용량 | GET `/admin/chat-usage?date=`, POST `/admin/chat-usage/settings` | ADMIN | 날짜별 토큰과 추정 비용, 전체 중단 스위치, 기본·전체 한도 |
 | - | 에러 | `/error/403`, `/error/404`, `/error/500` | 전체 | |
 
 ### 전자책 상세 화면의 버튼 분기
@@ -160,3 +164,9 @@ STOP_SALE / HIDDEN       → "판매 중지된 도서입니다" (보유자는 �
 | REFUND_NOT_ALLOWED | 400 | 7일 경과 또는 열람 기록 있음 |
 | REVIEW_NOT_ALLOWED | 403 | 미구매자 |
 | NOT_ORDER_OWNER | 403 | 타인 주문 접근 |
+| CHATBOT_SUSPENDED | 503 | 챗봇을 전체 중단했거나 서비스 전체 일일 한도를 넘음 |
+| CHATBOT_DISABLED | 403 | 그 계정은 챗봇을 쓸 수 없음 |
+| CHAT_DAILY_LIMIT_EXCEEDED | 429 | 계정의 오늘 토큰 한도를 모두 씀 |
+| CHAT_TOO_MANY_REQUESTS | 429 | 질문 사이 최소 간격을 지키지 않음 |
+| CHAT_ANSWER_FAILED | 503 | 모델 호출 실패 또는 빈 응답 |
+| CHAT_ANSWER_REJECTED | 400 | 모델이 답변을 거절함(stop_reason=refusal) |

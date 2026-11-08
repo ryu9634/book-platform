@@ -50,6 +50,7 @@ Java 21 · Spring Boot 4.1 (MVC) · Thymeleaf · Spring Data JPA + Oracle 23 Fre
 | 인증 | 화면은 세션 + CSRF, API는 JWT (Access 30분 + Refresh 7일 교체·탈취 감지) | 각 서비스 user `global/security` |
 | 결제·환불 | PG 호출은 트랜잭션 밖에서, 반영은 주문을 잠근 뒤, 실패하면 보상(PG 취소) | ebook core `payment`, `order` |
 | 외부 API | 국립중앙도서관 API: 타임아웃, 200 + 본문 오류 확인, 인증키를 로그에 남기지 않음 | library admin `book.client` |
+| AI 도서 추천 | Spring AI + Claude. 도구 호출로 실제 판매 중인 전자책만 추천, 계정별 일일 토큰 한도와 전체 중단 스위치 | ebook core `chat`, ebook user `chat`, ebook admin `chat` |
 | 서비스 간 통신 | HTTP Interface, 짧은 타임아웃, 캐시, fallback | [`docs/00-architecture.md`](docs/00-architecture.md) 6절 |
 
 ## 문서

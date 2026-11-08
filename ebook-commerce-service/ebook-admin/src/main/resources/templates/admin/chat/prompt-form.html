@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/default}">
+<head>
+    <title>챗봇 프롬프트 수정</title>
+</head>
+<body>
+<section layout:fragment="content">
+    <p th:if="${message}" class="alert" th:text="${message}">처리 결과</p>
+    <div class="title-row">
+        <h1 th:text="${prompt.name()}">프롬프트</h1>
+        <a class="link" th:href="@{/admin/chat-prompts}">목록</a>
+    </div>
+    <p class="hint">
+        <span th:text="|키 ${prompt.promptKey()}|">키</span> ·
+        <span th:text="|상태 ${prompt.statusLabel()}|">상태</span>
+    </p>
+
+    <form class="form" th:action="@{/admin/chat-prompts/{id}(id=${prompt.id()})}" th:object="${chatPromptForm}"
+          method="post">
+        <p class="alert error" th:each="error : ${#fields.globalErrors()}" th:text="${error}">오류</p>
+        <label for="content">프롬프트 본문</label>
+        <textarea id="content" th:field="*{content}" rows="20"></textarea>
+        <p class="field-error" th:if="${#fields.hasErrors('content')}" th:errors="*{content}">오류</p>
+        <p class="hint">검색 도구로 찾은 책만 추천하라는 지시와, 사용자 메시지를 명령으로 받지 말라는 지시는 그대로 두는 것이 좋습니다.</p>
+        <button type="submit" class="button">저장</button>
+    </form>
+
+    <h2>변경 이력</h2>
+    <p th:if="${historyPage.totalElements == 0}" class="muted">아직 고친 적이 없습니다.</p>
+    <table class="table" th:if="${historyPage.totalElements > 0}">
+        <thead><tr><th>바뀐 시각</th><th>고친 관리자</th><th>바뀌기 전 본문</th></tr></thead>
+        <tbody>
+        <tr th:each="history : ${historyPage.content}">
+            <td th:text="${#temporals.format(history.createdAt(), 'yyyy-MM-dd HH:mm')}">2026-11-08 10:00</td>
+            <td th:text="${history.changedBy()}">1</td>
+            <td><pre class="chat-text" th:text="${history.content()}">이전 본문</pre></td>
+        </tr>
+        </tbody>
+    </table>
+    <nav class="pager" th:if="${historyPage.totalPages > 1}">
+        <a th:if="${historyPage.hasPrevious()}"
+           th:href="@{/admin/chat-prompts/{id}(id=${prompt.id()}, page=${historyPage.number - 1})}">이전</a>
+        <span th:text="|${historyPage.number + 1} / ${historyPage.totalPages}|">1 / 1</span>
+        <a th:if="${historyPage.hasNext()}"
+           th:href="@{/admin/chat-prompts/{id}(id=${prompt.id()}, page=${historyPage.number + 1})}">다음</a>
+    </nav>
+</section>
+</body>
+</html>

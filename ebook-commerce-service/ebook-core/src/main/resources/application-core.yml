@@ -28,6 +28,14 @@ ebook:
   # 환불 정책: 결제 후 며칠 안에, 읽지 않은 항목만 환불할 수 있습니다.
   policy:
     refund-days: 7
+  # AI 챗봇 토큰 단가(100만 토큰당 미국 달러). 관리자 사용량 화면의 추정 비용 계산에만 씁니다.
+  # Anthropic이 달러로 청구하므로 환율을 끼우지 않습니다. 모델을 바꾸면 이 값도 함께 바꿔야 합니다.
+  # 현재 값은 claude-haiku-5-5 기준이고, 캐시 단가는 입력가의 1.25배(쓰기)와 0.1배(읽기) 관례를 적어 둔 것입니다.
+  chat-pricing:
+    input-per-million: 0.10
+    output-per-million: 0.50
+    cache-create-per-million: 0.125
+    cache-read-per-million: 0.01
   # 전자책 본문 파일 저장소. Docker에서는 회원 앱과 관리자 앱이 같은 볼륨을 씁니다.
   storage:
     dir: ${EBOOK_STORAGE_DIR:./build/ebook-files}

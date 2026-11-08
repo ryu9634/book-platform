@@ -34,6 +34,9 @@ public class EbookQueryService {
     // 회원에게는 숨긴 전자책을 보여 주지 않습니다. 판매 중지 도서는 보이되 구매할 수 없습니다.
     private static final Set<EbookStatus> VISIBLE = EnumSet.of(EbookStatus.ON_SALE, EbookStatus.STOP_SALE);
 
+    // 모델에 한 번에 넘길 후보 수 상한. 넘기는 책이 많아질수록 입력 토큰이 그만큼 늘어납니다.
+    private static final int RECOMMENDATION_MAX_SIZE = 20;
+
     private final EbookRepository ebookRepository;
     private final CategoryRepository categoryRepository;
     private final BookshelfRepository bookshelfRepository;
@@ -46,6 +49,19 @@ public class EbookQueryService {
         Map<Long, String> categoryNames = categoryNames();
         return ebookRepository.search(VISIBLE, normalized, categoryId, sorted)
                 .map(ebook -> EbookSummaryResponse.of(ebook, categoryNames.get(ebook.getCategoryId())));
+    }
+
+    // 챗봇 추천 후보. 회원이 바로 살 수 있어야 의미가 있으므로 판매 중인 책만 고릅니다.
+    // 목록 화면과 달리 소개 글까지 검색하고, 모델에 넘길 개수를 상한으로 묶습니다.
+    public List<EbookSummaryResponse> searchForRecommendation(String keyword, Long categoryId, int size) {
+        String normalized = keyword == null || keyword.isBlank() ? null : keyword.trim();
+        int limited = Math.min(Math.max(size, 1), RECOMMENDATION_MAX_SIZE);
+        Pageable pageable = PageRequest.of(0, limited, EbookSort.POPULAR.sort());
+        Map<Long, String> categoryNames = categoryNames();
+        return ebookRepository
+                .searchIncludingDescription(EnumSet.of(EbookStatus.ON_SALE), normalized, categoryId, pageable)
+                .map(ebook -> EbookSummaryResponse.of(ebook, categoryNames.get(ebook.getCategoryId())))
+                .getContent();
     }
 
     public List<EbookSummaryResponse> bestsellers() {

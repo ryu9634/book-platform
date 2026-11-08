@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/default}">
+<head>
+    <title>AI 도서 추천</title>
+</head>
+<body>
+<section layout:fragment="content" class="medium">
+    <div class="title-row">
+        <h1>AI 도서 추천</h1>
+        <form th:action="@{/chat/new}" method="post" class="inline">
+            <button type="submit" class="button secondary">새 대화</button>
+        </form>
+    </div>
+
+    <p class="hint">읽고 싶은 책의 분위기나 분야를 말해 주면 판매 중인 전자책 중에서 골라 줍니다.
+        주고받은 내용은 답변을 만들기 위해 외부 AI 서비스로 전송됩니다.</p>
+
+    <p th:if="${message}" class="alert" th:text="${message}">안내</p>
+    <p th:if="${errorMessage}" class="alert error" th:text="${errorMessage}">오류</p>
+    <p th:unless="${room.available()}" class="alert error" th:text="${room.unavailableReason()}">사용할 수 없음</p>
+
+    <div class="chat">
+        <p th:if="${#lists.isEmpty(room.messages())}" class="muted">아직 대화가 없습니다. 아래에 질문을 써 보세요.</p>
+        <div th:each="message : ${room.messages()}" class="chat-line"
+             th:classappend="${message.fromUser()} ? 'chat-mine' : 'chat-bot'">
+            <span class="chat-who" th:text="${message.fromUser()} ? '나' : 'AI'">AI</span>
+            <p class="chat-text" th:text="${message.content()}">내용</p>
+            <span class="muted" th:text="${#temporals.format(message.createdAt(), 'MM-dd HH:mm')}">11-08 10:00</span>
+        </div>
+    </div>
+
+    <div th:if="${recommendedBooks != null and !#lists.isEmpty(recommendedBooks)}">
+        <h2>답변에 나온 전자책</h2>
+        <ul class="cards">
+            <li th:each="book : ${recommendedBooks}" th:replace="~{fragments/ebook-card :: card(${book})}"></li>
+        </ul>
+    </div>
+
+    <form class="form" th:action="@{/chat/messages}" th:object="${chatQuestionForm}" method="post">
+        <label for="question">질문</label>
+        <textarea id="question" th:field="*{question}" rows="3" maxlength="500"
+                  placeholder="예) 출퇴근길에 가볍게 읽을 소설 추천해 줘"></textarea>
+        <p class="field-error" th:if="${#fields.hasErrors('question')}" th:errors="*{question}">오류</p>
+        <button type="submit" class="button" th:disabled="${!room.available()}">질문 보내기</button>
+        <p class="hint" th:text="|오늘 남은 사용량 ${room.remainingPercent()}%|">오늘 남은 사용량</p>
+    </form>
+</section>
+</body>
+</html>

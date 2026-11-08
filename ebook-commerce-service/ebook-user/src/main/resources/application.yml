@@ -6,6 +6,13 @@ spring:
   profiles:
     default: local
 
+  ai:
+    anthropic:
+      # API 키는 환경변수로만 넣습니다. 비어 있으면 챗봇만 "설정되지 않음"으로 동작하고 다른 기능은 그대로 뜹니다.
+      api-key: ${EBOOK_ANTHROPIC_API_KEY:}
+      timeout: 60s
+      max-retries: 2
+
 server:
   port: 8082
 
@@ -16,6 +23,16 @@ ebook:
     connect-timeout: 1s
     read-timeout: 2s
     cache-ttl: 5m
+  # AI 도서 추천 챗봇. 모델을 바꾸면 ebook.chat-pricing(application-core.yml)의 단가도 함께 바꿉니다.
+  chat:
+    model: ${EBOOK_CHAT_MODEL:claude-haiku-5-5}
+    # 추론 깊이. 채팅은 low로 충분합니다. 올리면 답변이 느려지고 출력 토큰이 늘어납니다.
+    effort: low
+    max-output-tokens: 1200
+    memory-window: 10
+    max-tool-calls: 3
+    candidate-size: 10
+    min-interval: 3s
   jwt:
     # HS256 서명 키. 32바이트 이상. 값은 환경 변수(.env의 EBOOK_JWT_SECRET)로만 넣습니다.
     secret: ${EBOOK_JWT_SECRET:}

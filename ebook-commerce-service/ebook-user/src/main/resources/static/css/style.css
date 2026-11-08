@@ -172,3 +172,15 @@ body > .error-page { max-width: 480px; margin-top: 96px; text-align: center; }
 @media (max-width: 640px) {
     .viewer { padding: 24px 20px; }
 }
+
+/* AI 도서 추천 대화 */
+.chat { display: flex; flex-direction: column; gap: 12px; margin: 16px 0; }
+.chat-line { display: flex; flex-direction: column; gap: 4px; max-width: 80%; padding: 10px 12px; border-radius: 10px; }
+.chat-line.chat-mine { align-self: flex-end; background: #eef2ff; }
+.chat-line.chat-bot { align-self: flex-start; background: #f4f4f5; }
+.chat-who { font-size: 12px; font-weight: 600; color: var(--primary); }
+.chat-text { margin: 0; white-space: pre-wrap; line-height: 1.6; }
+
+@media (max-width: 640px) {
+  .chat-line { max-width: 100%; }
+}

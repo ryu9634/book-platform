@@ -1,6 +1,10 @@
 spring:
   datasource:
     password: unused  # Testcontainers가 접속 정보를 덮어씁니다.
+  # 자동 구성이 올라오도록 넣는 가짜 키입니다. 테스트는 ChatCompletionPort를 대역으로 바꿔 실제 호출을 하지 않습니다.
+  ai:
+    anthropic:
+      api-key: test-api-key
 
 ebook:
   jwt:

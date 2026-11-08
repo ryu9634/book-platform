@@ -91,6 +91,8 @@ services:
       EBOOK_JWT_SECRET: ${EBOOK_JWT_SECRET:?.env에 EBOOK_JWT_SECRET을 설정하세요}
       # 도서관 서비스 API. 같은 compose 네트워크 안에서는 서비스 이름이 주소입니다.
       LIBRARY_API_URL: http://library-user:8081
+      # AI 도서 추천 챗봇. 비워 두면 챗봇만 쓰지 못하고 앱은 정상으로 뜹니다.
+      EBOOK_ANTHROPIC_API_KEY: ${EBOOK_ANTHROPIC_API_KEY:-}
 
   ebook-admin:
     <<: *app-common

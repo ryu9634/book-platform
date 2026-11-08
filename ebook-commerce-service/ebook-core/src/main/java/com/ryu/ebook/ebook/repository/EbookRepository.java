@@ -39,4 +39,25 @@ public interface EbookRepository extends JpaRepository<Ebook, Long> {
             """)
     Page<Ebook> search(@Param("statuses") Collection<EbookStatus> statuses, @Param("keyword") String keyword,
             @Param("categoryId") Long categoryId, Pageable pageable);
+
+    // 챗봇 추천 후보 검색: 제목·저자에 소개 글까지 더해 찾습니다.
+    // "번아웃", "위로"처럼 제목에는 없고 소개 글에만 있는 낱말로도 후보가 나오게 하려고 목록 검색과 따로 둡니다.
+    @Query(value = """
+            select e from Ebook e
+            where e.status in :statuses
+              and (:keyword is null or lower(e.title) like lower(concat('%', :keyword, '%'))
+                                    or lower(e.author) like lower(concat('%', :keyword, '%'))
+                                    or lower(e.description) like lower(concat('%', :keyword, '%')))
+              and (:categoryId is null or e.categoryId = :categoryId)
+            """,
+            countQuery = """
+            select count(e) from Ebook e
+            where e.status in :statuses
+              and (:keyword is null or lower(e.title) like lower(concat('%', :keyword, '%'))
+                                    or lower(e.author) like lower(concat('%', :keyword, '%'))
+                                    or lower(e.description) like lower(concat('%', :keyword, '%')))
+              and (:categoryId is null or e.categoryId = :categoryId)
+            """)
+    Page<Ebook> searchIncludingDescription(@Param("statuses") Collection<EbookStatus> statuses,
+            @Param("keyword") String keyword, @Param("categoryId") Long categoryId, Pageable pageable);
 }

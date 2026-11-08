@@ -11,6 +11,7 @@ import com.ryu.ebook.user.chat.client.ChatCompletion;
 import com.ryu.ebook.user.chat.client.ChatCompletionPort;
 import com.ryu.ebook.user.chat.client.ChatTurn;
 import com.ryu.ebook.user.chat.config.ChatProperties;
+import com.ryu.ebook.user.chat.dto.ChatAnswerResponse;
 import com.ryu.ebook.user.chat.dto.ChatQuestionForm;
 import com.ryu.ebook.user.chat.dto.ChatRoomResponse;
 import com.ryu.ebook.user.ebook.dto.EbookSummaryResponse;
@@ -50,8 +51,7 @@ public class ChatService {
                 .orElse(List.of()));
     }
 
-    // 답변에서 제목이 언급된 전자책을 돌려줍니다. 화면은 이 목록을 카드로 보여 줍니다.
-    public List<EbookSummaryResponse> ask(Long memberId, String question) {
+    public ChatAnswerResponse ask(Long memberId, String question) {
         String normalized = normalize(question);
         chatQuotaService.ensureAvailable(memberId);
 
@@ -70,10 +70,12 @@ public class ChatService {
         }
 
         String answer = completion.truncated() ? completion.answer() + TRUNCATED_NOTICE : completion.answer();
-        chatSessionService.appendExchange(session.getId(), normalized, answer, completion.usage());
+        List<EbookSummaryResponse> recommended = mentionedBooks(answer, completion.shownBooks());
+        chatSessionService.appendExchange(session.getId(), normalized, answer, completion.usage(),
+                recommended.stream().map(EbookSummaryResponse::id).toList());
         log.info("chat answered. memberId={}, sessionId={}, totalTokens={}", memberId, session.getId(),
                 completion.usage().totalTokens());
-        return mentionedBooks(answer, completion.shownBooks());
+        return new ChatAnswerResponse(answer, recommended);
     }
 
     public void startNewConversation(Long memberId) {

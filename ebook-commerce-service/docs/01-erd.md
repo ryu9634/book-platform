@@ -13,6 +13,7 @@
 | 리뷰 (REVIEW) | 구매한 회원만 작성, 전자책당 1개 |
 | 쿠폰 (COUPON, MEMBER_COUPON) | v2. 처음엔 테이블만 만들고 로직은 나중에 |
 | AI 추천 대화 (CHAT_SESSION, CHAT_MESSAGE) | 회원당 진행 중 대화 1개. 메시지는 다음 요청에 다시 실어 보낼 기억이면서 화면 이력 |
+| 추천 도서 (CHAT_MESSAGE_EBOOK) | 답변에 제목이 나온 전자책. 화면과 API가 같은 추천 결과를 보여 주도록 메시지에 묶는다 |
 | 챗봇 프롬프트 (CHAT_PROMPT, CHAT_PROMPT_HISTORY) | 관리자가 고치는 시스템 프롬프트와 바뀌기 전 본문 |
 | 챗봇 설정 (CHAT_SETTING, MEMBER_CHAT_SETTING) | 전체 중단 스위치·기본 한도와 계정별 사용 여부·일일 한도 |
 | 토큰 사용량 (CHAT_TOKEN_USAGE_DAILY) | 회원·날짜별 토큰 누적. 날짜마다 행이 생기므로 자정 초기화 배치가 없다 |
@@ -49,6 +50,8 @@ erDiagram
     MEMBER ||--o| MEMBER_CHAT_SETTING : "챗봇 설정"
     MEMBER ||--o{ CHAT_TOKEN_USAGE_DAILY : "사용량"
     CHAT_PROMPT ||--o{ CHAT_PROMPT_HISTORY : "변경 이력"
+    CHAT_MESSAGE ||--o{ CHAT_MESSAGE_EBOOK : "추천 도서"
+    EBOOK ||--o{ CHAT_MESSAGE_EBOOK : ""
 
     MEMBER {
         NUMBER MEMBER_ID PK
@@ -216,6 +219,12 @@ erDiagram
         NUMBER DAILY_TOKEN_LIMIT "NULL이면 기본 한도를 따름"
         NUMBER UPDATED_BY "→ MEMBER, 설정을 바꾼 관리자"
     }
+    CHAT_MESSAGE_EBOOK {
+        NUMBER CHAT_MESSAGE_EBOOK_ID PK
+        NUMBER CHAT_MESSAGE_ID "→ CHAT_MESSAGE, (MESSAGE_ID, EBOOK_ID) UK"
+        NUMBER EBOOK_ID "→ EBOOK"
+        NUMBER SORT_ORDER "답변에 나온 순서"
+    }
     CHAT_TOKEN_USAGE_DAILY {
         NUMBER CHAT_TOKEN_USAGE_DAILY_ID PK
         NUMBER MEMBER_ID "→ MEMBER, (MEMBER_ID, USAGE_DATE) UK"
@@ -253,6 +262,7 @@ erDiagram
 | ChatSetting | CHAT_SETTING | | 행이 하나뿐이라 ID를 1로 고정하고 시퀀스를 두지 않습니다 |
 | ChatSession | CHAT_SESSION | MEMBER_ID → MEMBER | `Long memberId` |
 | ChatMessage | CHAT_MESSAGE | CHAT_SESSION_ID → CHAT_SESSION | `Long chatSessionId` (예외: 아래 설명) |
+| ChatMessageEbook | CHAT_MESSAGE_EBOOK | CHAT_MESSAGE_ID, EBOOK_ID | `Long chatMessageId`, `Long ebookId` |
 | MemberChatSetting | MEMBER_CHAT_SETTING | MEMBER_ID → MEMBER | `Long memberId` |
 | ChatTokenUsageDaily | CHAT_TOKEN_USAGE_DAILY | MEMBER_ID → MEMBER | `Long memberId` |
 
@@ -311,6 +321,7 @@ erDiagram
 | CHAT_MESSAGE.SEQ_NO | NUMBER(10) | 세션 안 순서. (CHAT_SESSION_ID, SEQ_NO) UNIQUE가 순번 중복을 막고 참조 컬럼 인덱스 역할도 한다 |
 | CHAT_MESSAGE.CONTENT | CLOB | 사람이 읽는 질문·답변만 저장. 도구 호출 블록과 추론(thinking) 블록은 저장하지 않는다 |
 | MEMBER_CHAT_SETTING.DAILY_TOKEN_LIMIT | NUMBER(12) | NULL이면 CHAT_SETTING의 기본 한도를 따른다. 행이 없는 회원도 기본값을 쓰므로 가입할 때 만들지 않는다 |
+| CHAT_MESSAGE_EBOOK.SORT_ORDER | NUMBER(5) | 답변에 나온 순서. (CHAT_MESSAGE_ID, EBOOK_ID) UNIQUE가 같은 책을 두 번 묶는 것을 막는다 |
 | CHAT_TOKEN_USAGE_DAILY | | 네 종류 토큰을 따로 센다(입력·출력·캐시 쓰기·캐시 읽기). 단가가 서로 달라 합쳐 두면 비용을 계산할 수 없다 |
 
 ## 5. 비즈니스 규칙
@@ -331,6 +342,7 @@ erDiagram
 | 추천 후보는 판매 중(ON_SALE)인 전자책만. 숨긴 책과 판매 중지 책은 모델에 보여 주지 않는다 | EbookQueryService.searchForRecommendation() |
 | 보유 도서 조회는 도구 인자가 아니라 ToolContext의 회원 번호로 한다(모델이 남의 서재를 볼 수 없게) | EbookSearchTools |
 | 한 질문에 허용하는 검색 횟수와 질문 사이 최소 간격이 있다 | ChatToolSession, ChatService.ensureNotTooFast() |
+| 답변에 제목이 나온 책만 추천 도서로 묶는다(최대 3권). 그 뒤 숨김으로 바뀐 책은 보여 주지 않는다 | ChatService.mentionedBooks(), EbookQueryService.summariesById() |
 
 ## 6. 상태 전이
 
@@ -365,4 +377,4 @@ EBOOK   : ON_SALE ◀──▶ STOP_SALE,  ON_SALE/STOP_SALE ──▶ HIDDEN
 - 전자책 파일 S3 업로드와 서명된 URL 다운로드
 - 다운로드 로그, 위시리스트, 검색 엔진 연동
 - 대출 서비스와 연계: 도서관에서 빌렸던 책을 ebook으로 추천
-- 챗봇: 프롬프트 캐싱(시스템 프롬프트와 도구 정의는 매 요청 같으므로), 답변 스트리밍(SSE), 임베딩 벡터 검색(Oracle 23 VECTOR), 추천 도서를 메시지에 묶어 두는 링크 테이블
+- 챗봇: 프롬프트 캐싱(시스템 프롬프트와 도구 정의는 매 요청 같으므로), 답변 스트리밍(SSE), 임베딩 벡터 검색(Oracle 23 VECTOR)

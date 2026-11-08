@@ -79,7 +79,7 @@ flowchart LR
 | 20 | 주문 상세(관리자) | GET `/admin/orders/{orderNo}` | ADMIN | 결제 정보, 강제 환불 |
 | 21 | 회원 관리 | GET `/admin/members` | ADMIN | 조회, 탈퇴 처리 |
 | 22 | 매출 요약 | GET `/admin/sales?month=` | ADMIN | 월별 매출, 카테고리별, 상위 전자책 (집계 쿼리) |
-| 23 | AI 도서 추천 | GET `/chat`, POST `/chat/messages`, POST `/chat/new` | USER | 대화 이력, 질문 입력(500자), 오늘 남은 사용량, 답변에 제목이 나온 전자책 카드 |
+| 23 | AI 도서 추천 | GET `/chat`, POST `/chat/messages`, POST `/chat/new` | USER | 대화 이력, 질문 입력(500자), 오늘 남은 사용량, 답변마다 추천 전자책 카드 |
 | 24 | 챗봇 프롬프트 | GET `/admin/chat-prompts`, GET/POST `/admin/chat-prompts/{id}` | ADMIN | 시스템 프롬프트 수정, 변경 이력, 사용/중단 |
 | 25 | 챗봇 계정 설정 | GET `/admin/chat-members`, POST `/admin/chat-members/{memberId}` | ADMIN | 계정별 사용 여부와 일일 토큰 한도, 오늘 사용량 |
 | 26 | 챗봇 사용량 | GET `/admin/chat-usage?date=`, POST `/admin/chat-usage/settings` | ADMIN | 날짜별 토큰과 추정 비용, 전체 중단 스위치, 기본·전체 한도 |
@@ -146,6 +146,9 @@ STOP_SALE / HIDDEN       → "판매 중지된 도서입니다" (보유자는 �
 | POST/PUT/DELETE | `/api/v1/ebooks/{id}/reviews`, `/api/v1/reviews/{id}` | USER | 리뷰 |
 | POST/PUT/PATCH | `/api/v1/admin/ebooks`, `/api/v1/admin/ebooks/{id}`, `/api/v1/admin/ebooks/{id}/status` | ADMIN | 전자책 관리 |
 | POST | `/api/v1/admin/ebooks/{id}/file` | ADMIN | 파일 업로드 (multipart) |
+| GET | `/api/v1/chat` | USER | 남은 사용량과 지난 대화 |
+| POST | `/api/v1/chat/messages` | USER | 질문 → 답변과 추천 전자책 (201) |
+| POST | `/api/v1/chat/new` | USER | 지금 대화를 닫고 새 대화 시작 |
 | GET | `/api/v1/admin/orders`, `/api/v1/admin/orders/{orderNo}` | ADMIN | 주문 조회 |
 | POST | `/api/v1/admin/orders/{orderNo}/refund` | ADMIN | 전체 환불 |
 | GET | `/api/v1/admin/sales/monthly?month=` | ADMIN | 매출 집계 |

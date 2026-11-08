@@ -19,6 +19,7 @@ import com.ryu.ebook.chat.domain.ChatQuota;
 import com.ryu.ebook.global.exception.BusinessException;
 import com.ryu.ebook.global.exception.ErrorCode;
 import com.ryu.ebook.member.MemberFixture;
+import com.ryu.ebook.user.chat.dto.ChatAnswerResponse;
 import com.ryu.ebook.user.chat.dto.ChatRoomResponse;
 import com.ryu.ebook.user.chat.service.ChatService;
 import com.ryu.ebook.user.ebook.dto.EbookSummaryResponse;
@@ -64,17 +65,18 @@ class ChatViewControllerTest {
     }
 
     @Test
-    @DisplayName("질문에 답하면 대화 화면으로 돌아가고, 답변에 나온 전자책을 한 번만 보여 준다")
+    @DisplayName("질문에 답하면 대화 화면으로 돌아가고, 저장된 대화를 다시 읽어 그린다")
     void ask_성공_리다이렉트() throws Exception {
         // given
-        given(chatService.ask(5L, "자바 책 추천해 줘")).willReturn(List.of(
-                new EbookSummaryResponse(1L, "이펙티브 자바", "조슈아 블로크", null, 36000, 32400, 10, "IT/프로그래밍", true)));
+        given(chatService.ask(5L, "자바 책 추천해 줘")).willReturn(new ChatAnswerResponse("이펙티브 자바를 권합니다.",
+                List.of(new EbookSummaryResponse(1L, "이펙티브 자바", "조슈아 블로크", null, 36000, 32400, 10,
+                        "IT/프로그래밍", true))));
 
         // when, then
         mockMvc.perform(post("/chat/messages").with(user(loginMember)).with(csrf())
                         .param("question", "자바 책 추천해 줘"))
                 .andExpect(redirectedUrl("/chat"))
-                .andExpect(flash().attributeExists("recommendedBooks"));
+                .andExpect(flash().attributeCount(0));
     }
 
     @Test

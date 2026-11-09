@@ -3,6 +3,9 @@
       layout:decorate="~{layout/default}">
 <head>
     <title>AI 도서 추천</title>
+    <!-- 스트리밍 요청(fetch)이 CSRF 토큰을 헤더에 넣어 보내려면 화면에 토큰이 있어야 합니다. -->
+    <meta name="_csrf" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:content="${_csrf.headerName}">
 </head>
 <body>
 <section layout:fragment="content" class="medium">
@@ -20,8 +23,8 @@
     <p th:if="${errorMessage}" class="alert error" th:text="${errorMessage}">오류</p>
     <p th:unless="${room.available()}" class="alert error" th:text="${room.unavailableReason()}">사용할 수 없음</p>
 
-    <div class="chat">
-        <p th:if="${#lists.isEmpty(room.messages())}" class="muted">아직 대화가 없습니다. 아래에 질문을 써 보세요.</p>
+    <div class="chat" id="chat-log">
+        <p th:if="${#lists.isEmpty(room.messages())}" class="muted chat-empty">아직 대화가 없습니다. 아래에 질문을 써 보세요.</p>
         <div th:each="message : ${room.messages()}" class="chat-line"
              th:classappend="${message.fromUser()} ? 'chat-mine' : 'chat-bot'">
             <span class="chat-who" th:text="${message.fromUser()} ? '나' : 'AI'">AI</span>
@@ -34,7 +37,8 @@
         </div>
     </div>
 
-    <form class="form" th:action="@{/chat/messages}" th:object="${chatQuestionForm}" method="post">
+    <form class="form" id="chat-form" th:action="@{/chat/messages}" th:data-stream-url="@{/chat/stream}"
+          th:object="${chatQuestionForm}" method="post">
         <label for="question">질문</label>
         <textarea id="question" th:field="*{question}" rows="3" maxlength="500"
                   placeholder="예) 출퇴근길에 가볍게 읽을 소설 추천해 줘"></textarea>
@@ -42,6 +46,9 @@
         <button type="submit" class="button" th:disabled="${!room.available()}">질문 보내기</button>
         <p class="hint" th:text="|오늘 남은 사용량 ${room.remainingPercent()}%|">오늘 남은 사용량</p>
     </form>
+
+    <!-- 스크립트가 없거나 꺼 두면 위 폼이 그대로 전송돼 같은 기능이 동작합니다. -->
+    <script th:if="${room.streamEnabled()}" th:src="@{/js/chat.js}" defer></script>
 </section>
 </body>
 </html>

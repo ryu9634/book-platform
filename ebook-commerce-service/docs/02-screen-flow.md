@@ -79,7 +79,7 @@ flowchart LR
 | 20 | 주문 상세(관리자) | GET `/admin/orders/{orderNo}` | ADMIN | 결제 정보, 강제 환불 |
 | 21 | 회원 관리 | GET `/admin/members` | ADMIN | 조회, 탈퇴 처리 |
 | 22 | 매출 요약 | GET `/admin/sales?month=` | ADMIN | 월별 매출, 카테고리별, 상위 전자책 (집계 쿼리) |
-| 23 | AI 도서 추천 | GET `/chat`, POST `/chat/messages`, POST `/chat/new` | USER | 대화 이력, 질문 입력(500자), 오늘 남은 사용량, 답변마다 추천 전자책 카드 |
+| 23 | AI 도서 추천 | GET `/chat`, POST `/chat/messages`, POST `/chat/stream`, POST `/chat/new` | USER | 대화 이력, 질문 입력(500자), 오늘 남은 사용량, 답변마다 추천 전자책 카드. `/chat/stream`은 답변을 글자 단위로 보내고(SSE), 스크립트가 없으면 `/chat/messages` 폼 전송으로 동작 |
 | 24 | 챗봇 프롬프트 | GET `/admin/chat-prompts`, GET/POST `/admin/chat-prompts/{id}` | ADMIN | 시스템 프롬프트 수정, 변경 이력, 사용/중단 |
 | 25 | 챗봇 계정 설정 | GET `/admin/chat-members`, POST `/admin/chat-members/{memberId}` | ADMIN | 계정별 사용 여부와 일일 토큰 한도, 오늘 사용량 |
 | 26 | 챗봇 사용량 | GET `/admin/chat-usage?date=`, POST `/admin/chat-usage/settings` | ADMIN | 날짜별 토큰과 추정 비용, 전체 중단 스위치, 기본·전체 한도 |

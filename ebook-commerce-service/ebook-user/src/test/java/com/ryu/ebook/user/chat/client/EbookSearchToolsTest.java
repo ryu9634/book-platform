@@ -25,7 +25,8 @@ class EbookSearchToolsTest {
     private final EbookQueryService ebookQueryService = mock(EbookQueryService.class);
     private final BookshelfQueryService bookshelfQueryService = mock(BookshelfQueryService.class);
     private final ChatProperties chatProperties =
-            new ChatProperties("claude-haiku-5-5", "low", 1200, 10, 2, 10, Duration.ofSeconds(3));
+            new ChatProperties("claude-haiku-5-5", "low", 1200, 10, 2, 10, Duration.ofSeconds(3), true,
+                    Duration.ofSeconds(120));
     private final EbookSearchTools tools =
             new EbookSearchTools(ebookQueryService, bookshelfQueryService, chatProperties);
 

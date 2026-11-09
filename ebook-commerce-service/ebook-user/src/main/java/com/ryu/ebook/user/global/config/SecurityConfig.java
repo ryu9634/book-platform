@@ -69,7 +69,7 @@ public class SecurityConfig {
     public SecurityFilterChain formLoginFilterChain(HttpSecurity http) throws Exception {
         return http
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/login", "/css/**", "/error").permitAll()
+                        .requestMatchers("/", "/login", "/css/**", "/js/**", "/error").permitAll()
                         .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers("/members/new").permitAll()
                         .requestMatchers(HttpMethod.GET, "/ebooks", "/ebooks/*").permitAll()

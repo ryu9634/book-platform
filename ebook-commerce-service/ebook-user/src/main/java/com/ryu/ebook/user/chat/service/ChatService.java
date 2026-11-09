@@ -20,6 +20,8 @@ import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.function.Consumer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -48,10 +50,20 @@ public class ChatService {
         ChatQuota quota = chatQuotaService.quota(memberId);
         return ChatRoomResponse.of(quota, chatSessionService.findActive(memberId)
                 .map(session -> chatSessionService.messages(session.getId()))
-                .orElse(List.of()));
+                .orElse(List.of()), chatProperties.streamEnabled());
     }
 
     public ChatAnswerResponse ask(Long memberId, String question) {
+        return answer(memberId, question, null);
+    }
+
+    // 조각이 올 때마다 onChunk를 부릅니다. 한도 확인과 저장은 한 번에 받는 방식과 똑같이 거칩니다.
+    public ChatAnswerResponse askStreaming(Long memberId, String question, Consumer<String> onChunk) {
+        return answer(memberId, question, Objects.requireNonNull(onChunk));
+    }
+
+    // onChunk가 null이면 한 번에 받고, 있으면 조각으로 받습니다. 두 방식의 차이는 모델을 부르는 한 줄뿐입니다.
+    private ChatAnswerResponse answer(Long memberId, String question, Consumer<String> onChunk) {
         String normalized = normalize(question);
         chatQuotaService.ensureAvailable(memberId);
 
@@ -60,7 +72,9 @@ public class ChatService {
         String systemPrompt = chatPromptService.activeContent(ChatPrompt.BOOK_RECOMMEND);
         List<ChatTurn> history = chatSessionService.recentTurns(session.getId());
 
-        ChatCompletion completion = chatCompletionPort.answer(systemPrompt, history, normalized, memberId);
+        ChatCompletion completion = onChunk == null
+                ? chatCompletionPort.answer(systemPrompt, history, normalized, memberId)
+                : chatCompletionPort.answerStreaming(systemPrompt, history, normalized, memberId, onChunk);
 
         // 거절이든 중단이든 토큰은 이미 쓴 상태입니다. 그래서 답변을 쓸 수 있는지 판단하기 전에 먼저 기록합니다.
         chatQuotaService.record(memberId, completion.usage());

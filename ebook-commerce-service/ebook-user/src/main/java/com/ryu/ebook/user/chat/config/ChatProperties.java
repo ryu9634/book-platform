@@ -20,5 +20,9 @@ public record ChatProperties(
         // 검색 한 번에 모델에 보여 줄 전자책 수.
         int candidateSize,
         // 같은 회원의 질문 사이 최소 간격.
-        Duration minInterval) {
+        Duration minInterval,
+        // 답변을 글자 단위로 흘려 보낼지. 끄면 화면이 폼 전송 방식으로 되돌아갑니다.
+        boolean streamEnabled,
+        // 스트리밍 연결을 끊지 않고 기다리는 시간.
+        Duration streamTimeout) {
 }

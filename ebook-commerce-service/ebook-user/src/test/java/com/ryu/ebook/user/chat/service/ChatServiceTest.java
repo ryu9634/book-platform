@@ -30,8 +30,10 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -46,7 +48,8 @@ class ChatServiceTest {
     private final ChatSessionService chatSessionService = mock(ChatSessionService.class);
     private final ChatCompletionPort chatCompletionPort = mock(ChatCompletionPort.class);
     private final ChatProperties chatProperties =
-            new ChatProperties("claude-haiku-5-5", "low", 1200, 10, 3, 10, Duration.ofSeconds(3));
+            new ChatProperties("claude-haiku-5-5", "low", 1200, 10, 3, 10, Duration.ofSeconds(3), true,
+                    Duration.ofSeconds(120));
     private final ChatService chatService = new ChatService(chatQuotaService, chatPromptService, chatSessionService,
             chatCompletionPort, chatProperties, Clock.fixed(NOW, ZONE));
 
@@ -176,6 +179,50 @@ class ChatServiceTest {
         assertThat(room.unavailableReason()).isNull();
         assertThat(room.remainingTokens()).isEqualTo(15_000);
         assertThat(room.remainingPercent()).isEqualTo(75);
+        assertThat(room.streamEnabled()).isTrue();
         assertThat(room.messages()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("스트리밍도 한도 확인과 저장을 똑같이 거치고, 조각은 받은 순서대로 넘어온다")
+    void askStreaming_조각전달_저장() {
+        // given
+        given(chatSessionService.openIfAbsent(MEMBER_ID)).willReturn(ChatSession.open(MEMBER_ID));
+        given(chatPromptService.activeContent(anyString())).willReturn("시스템 프롬프트");
+        given(chatSessionService.recentTurns(any())).willReturn(List.of());
+        TokenUsage usage = TokenUsage.of(1000, 200);
+        given(chatCompletionPort.answerStreaming(any(), any(), eq("자바 책 추천해 줘"), eq(MEMBER_ID), any()))
+                .willAnswer(invocation -> {
+                    Consumer<String> onChunk = invocation.getArgument(4);
+                    onChunk.accept("이펙티브 ");
+                    onChunk.accept("자바를 권합니다.");
+                    return new ChatCompletion("이펙티브 자바를 권합니다.", usage, false, false, List.of(recommended));
+                });
+
+        // when
+        List<String> chunks = new ArrayList<>();
+        var answer = chatService.askStreaming(MEMBER_ID, "자바 책 추천해 줘", chunks::add);
+
+        // then
+        assertThat(chunks).containsExactly("이펙티브 ", "자바를 권합니다.");
+        assertThat(answer.recommendedBooks()).extracting(EbookSummaryResponse::title).containsExactly("이펙티브 자바");
+        verify(chatQuotaService).ensureAvailable(MEMBER_ID);
+        verify(chatQuotaService).record(MEMBER_ID, usage);
+        verify(chatSessionService).appendExchange(any(), eq("자바 책 추천해 줘"), eq("이펙티브 자바를 권합니다."),
+                eq(usage), eq(List.of(1L)));
+    }
+
+    @Test
+    @DisplayName("스트리밍도 한도를 넘은 계정은 모델을 부르지 않는다")
+    void askStreaming_한도초과_호출안함() {
+        // given
+        willThrow(new BusinessException(ErrorCode.CHAT_DAILY_LIMIT_EXCEEDED))
+                .given(chatQuotaService).ensureAvailable(MEMBER_ID);
+
+        // when, then
+        assertThatThrownBy(() -> chatService.askStreaming(MEMBER_ID, "추천해 줘", chunk -> { }))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode").isEqualTo(ErrorCode.CHAT_DAILY_LIMIT_EXCEEDED);
+        then(chatCompletionPort).shouldHaveNoInteractions();
     }
 }

@@ -52,7 +52,7 @@ class ChatApiControllerTest {
     void room_공통응답() throws Exception {
         // given
         given(chatService.room(5L)).willReturn(
-                ChatRoomResponse.of(new ChatQuota(true, true, 20_000, 5_000, 1_000_000, 10_000), List.of()));
+                ChatRoomResponse.of(new ChatQuota(true, true, 20_000, 5_000, 1_000_000, 10_000), List.of(), true));
 
         // when, then
         mockMvc.perform(get("/api/v1/chat")

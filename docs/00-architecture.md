@@ -50,7 +50,7 @@
 | Test | JUnit 5, Mockito, Testcontainers(Oracle `gvenzl/oracle-free:23-slim`) | Boot 4에서는 `@MockBean` 대신 `@MockitoBean` |
 | Build | Gradle 9 (Groovy DSL), Gradle Wrapper | |
 | CI | GitHub Actions | build + test |
-| AI | Spring AI 2.0.x + Anthropic Claude (`spring-ai-starter-model-anthropic`) | ebook 회원 앱의 도서 추천 챗봇. Boot 4.0~4.1 호환 라인(2.1.x는 Boot 4.2 기준). 지금은 도구 호출로 DB를 찾고, 벡터 검색(Oracle 23 VECTOR)은 다음 단계 |
+| AI | Spring AI 2.0.x + Anthropic Claude (`spring-ai-starter-model-anthropic`) | ebook 회원 앱의 도서 추천 챗봇. Boot 4.0~4.1 호환 라인(2.1.x는 Boot 4.2 기준). 도구 호출로 DB를 찾고, 답변은 SSE로 흘려 보냅니다(가상 스레드). 벡터 검색(Oracle 23 VECTOR)은 다음 단계 |
 
 ## 3. 모듈과 패키지 구조 (두 서비스 공통)
 

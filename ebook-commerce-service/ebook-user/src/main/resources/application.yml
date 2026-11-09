@@ -33,6 +33,9 @@ ebook:
     max-tool-calls: 3
     candidate-size: 10
     min-interval: 3s
+    # 답변을 글자 단위로 흘려 보냅니다. false로 두면 화면이 폼 전송 방식으로 되돌아갑니다.
+    stream-enabled: true
+    stream-timeout: 120s
   jwt:
     # HS256 서명 키. 32바이트 이상. 값은 환경 변수(.env의 EBOOK_JWT_SECRET)로만 넣습니다.
     secret: ${EBOOK_JWT_SECRET:}

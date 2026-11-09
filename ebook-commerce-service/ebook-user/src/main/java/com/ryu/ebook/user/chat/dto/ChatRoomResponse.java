@@ -5,11 +5,11 @@ import java.util.List;
 
 // 챗봇 화면에 필요한 것 전부. 쓸 수 없는 상태면 왜 쓸 수 없는지도 함께 내려 화면에서 판단하지 않게 합니다.
 public record ChatRoomResponse(boolean available, String unavailableReason, long dailyTokenLimit,
-        long remainingTokens, int remainingPercent, List<ChatMessageResponse> messages) {
+        long remainingTokens, int remainingPercent, boolean streamEnabled, List<ChatMessageResponse> messages) {
 
-    public static ChatRoomResponse of(ChatQuota quota, List<ChatMessageResponse> messages) {
+    public static ChatRoomResponse of(ChatQuota quota, List<ChatMessageResponse> messages, boolean streamEnabled) {
         return new ChatRoomResponse(quota.isAvailable(), reason(quota), quota.dailyTokenLimit(),
-                quota.remainingTokens(), percent(quota), messages);
+                quota.remainingTokens(), percent(quota), streamEnabled, messages);
     }
 
     private static String reason(ChatQuota quota) {

@@ -38,7 +38,8 @@ class ChatSessionServiceTest {
     private final ChatMessageEbookRepository chatMessageEbookRepository = mock(ChatMessageEbookRepository.class);
     private final EbookQueryService ebookQueryService = mock(EbookQueryService.class);
     private final ChatProperties chatProperties =
-            new ChatProperties("claude-haiku-5-5", "low", 1200, 10, 3, 10, Duration.ofSeconds(3));
+            new ChatProperties("claude-haiku-5-5", "low", 1200, 10, 3, 10, Duration.ofSeconds(3), true,
+                    Duration.ofSeconds(120));
     private final ChatSessionService chatSessionService = new ChatSessionService(chatSessionRepository,
             chatMessageRepository, chatMessageEbookRepository, ebookQueryService, chatProperties,
             Clock.fixed(Instant.parse("2026-11-08T01:00:00Z"), ZoneId.of("Asia/Seoul")));

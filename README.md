@@ -38,6 +38,23 @@ flowchart LR
 
 서비스마다 `core`(도메인) · `user`(회원 앱) · `admin`(관리자 앱) 모듈로 나누고, 의존은 `user → core`, `admin → core` 한 방향만 허용했습니다.
 
+## 화면
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/images/ebook-home.png" alt="ebook 메인"><br><sub><b>ebook 메인</b> — 베스트셀러와, 도서관 서비스의 인기 대출 API를 불러 만든 추천 영역</sub></td>
+    <td width="50%"><img src="docs/images/library-books.png" alt="도서 검색"><br><sub><b>도서관 도서 검색</b> — 소장 권수와 대출 가능 여부</sub><br><br>
+        <img src="docs/images/library-my-loans.png" alt="내 대출"><br><sub><b>내 대출</b> — 반납 예정일, 연장·반납</sub></td>
+  </tr>
+  <tr>
+    <td><img src="docs/images/ebook-payment.png" alt="결제"><br><sub><b>결제 (Mock PG)</b> — 승인·실패·취소 흐름을 화면에서 재현</sub></td>
+    <td><img src="docs/images/ebook-chat.png" alt="AI 도서 추천"><br><sub><b>AI 도서 추천</b> — 질문 입력과 오늘 남은 사용량</sub></td>
+  </tr>
+  <tr>
+    <td colspan="2"><img src="docs/images/ebook-admin-chat-prompt.png" alt="챗봇 프롬프트 관리"><br><sub><b>관리자: 챗봇 프롬프트 관리</b> — 시스템 프롬프트를 재배포 없이 수정하고 변경 이력을 보관</sub></td>
+  </tr>
+</table>
+
 ## 핵심 구현
 
 ### 1. 동시 요청에서도 깨지지 않는 대출과 결제
